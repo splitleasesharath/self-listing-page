@@ -126,7 +126,7 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
           <div class="track"></div>
           <div class="ranges">
             <input id="slw-r1" type="range" min="0" max="600" step="1" value="100" aria-label="1-night price" />
-            <input id="slw-r5" type="range" min="0" max="3000" step="1" value="0" aria-label="5-night total" />
+            <input id="slw-r5" type="range" min="0" max="2000" step="1" value="0" aria-label="5-night total" />
 
             <div id="slw-tag1" class="tag">1 night price</div>
             <div id="slw-val1" class="value">$100</div>
@@ -200,14 +200,12 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         return clamp((lo+hi)/2, DECAY_MIN, DECAY_MAX);
       }
 
-      function getBounds() {
+      function updateBounds() {
         const p1 = +r1.value || 0;
         const minTotal = sumSeries(p1, DECAY_MIN);
         const maxTotal = sumSeries(p1, DECAY_MAX);
-        return {
-          min: Math.round(minTotal),
-          max: Math.round(Math.max(maxTotal, minTotal))
-        };
+        r5.min = String(Math.round(minTotal));
+        r5.max = String(Math.round(Math.max(maxTotal, minTotal)));
       }
 
       function rebuildFrom(p1: number, d: number, isDragging = false) {
@@ -299,10 +297,11 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         totalEl.value = String(Math.round(total));
         r1.value = String(Math.round(p1));
 
-        // Clamp total to valid bounds for display, but don't update slider max
-        const bounds = getBounds();
-        const Sclamped = clamp(total, bounds.min, bounds.max);
-        r5.value = String(Math.round(Sclamped));
+        // Update bounds for r5 slider
+        updateBounds();
+
+        // Set r5 value to the calculated total
+        r5.value = String(Math.round(total));
         placeTags();
         renderTable();
 
@@ -332,11 +331,15 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
 
       function onDragP1(val: number) {
         const p1 = Math.max(0, val);
-        // Get current r5 value before rebuildFrom updates bounds
-        const Sfixed = +r5.value || 0;
+        // Update r1 value first so updateBounds uses new p1
+        r1.value = String(Math.round(p1));
+        // Update bounds immediately so r5 has correct range
+        updateBounds();
+        // Clamp current r5 value to new bounds
+        const Sfixed = clamp(+r5.value || 0, +r5.min, +r5.max);
         const d = solveDecay(p1, Sfixed);
         currentDecay = d;
-        rebuildFrom(p1, d, true); // isDragging = true, this calls updateBounds()
+        rebuildFrom(p1, d, true); // isDragging = true
         placeTags();
       }
 
