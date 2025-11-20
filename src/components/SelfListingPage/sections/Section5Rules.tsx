@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import type { Rules, CancellationPolicy, GenderPreference } from '../types/listing.types';
+import type { Rules, CancellationPolicy, GenderPreference, RentalType } from '../types/listing.types';
 import { HOUSE_RULES } from '../types/listing.types';
 
 interface Section5Props {
   data: Rules;
+  rentalType: RentalType;
   onChange: (data: Rules) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
-export const Section5Rules: React.FC<Section5Props> = ({ data, onChange, onNext, onBack }) => {
+export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onChange, onNext, onBack }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: keyof Rules, value: any) => {
@@ -56,6 +57,17 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, onChange, onNext,
 
   const checkInTimes = ['1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM', '4:00 PM'];
   const checkOutTimes = ['10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM'];
+
+  // Determine duration unit based on rental type
+  const getDurationUnit = () => {
+    if (rentalType === 'Monthly') {
+      return 'months';
+    }
+    // For Nightly and Weekly, use weeks
+    return 'weeks';
+  };
+
+  const durationUnit = getDurationUnit();
 
   return (
     <div className="section-container rules-section">
@@ -143,7 +155,7 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, onChange, onNext,
       {/* Ideal Rental Duration */}
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="idealMinDuration">Ideal rental duration (min months)</label>
+          <label htmlFor="idealMinDuration">Ideal rental duration (min {durationUnit})</label>
           <input
             type="number"
             id="idealMinDuration"
@@ -155,7 +167,7 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, onChange, onNext,
         </div>
 
         <div className="form-group">
-          <label htmlFor="idealMaxDuration">Ideal rental duration (max months)</label>
+          <label htmlFor="idealMaxDuration">Ideal rental duration (max {durationUnit})</label>
           <input
             type="number"
             id="idealMaxDuration"

@@ -199,6 +199,7 @@ export const SelfListingPage: React.FC = () => {
           {currentSection === 5 && (
             <Section5Rules
               data={formData.rules}
+              rentalType={formData.leaseStyles.rentalType}
               onChange={(data) => setFormData({ ...formData, rules: data })}
               onNext={handleNext}
               onBack={handleBack}
