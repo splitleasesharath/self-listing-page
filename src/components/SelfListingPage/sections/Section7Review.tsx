@@ -1,0 +1,228 @@
+import React, { useState } from 'react';
+import type { ListingFormData, ReviewData } from '../types/listing.types';
+
+interface Section7Props {
+  formData: ListingFormData;
+  reviewData: ReviewData;
+  onChange: (data: ReviewData) => void;
+  onSubmit: () => void;
+  onBack: () => void;
+  isSubmitting: boolean;
+}
+
+export const Section7Review: React.FC<Section7Props> = ({
+  formData,
+  reviewData,
+  onChange,
+  onSubmit,
+  onBack,
+  isSubmitting
+}) => {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (field: keyof ReviewData, value: any) => {
+    onChange({ ...reviewData, [field]: value });
+    if (errors[field]) {
+      const newErrors = { ...errors };
+      delete newErrors[field];
+      setErrors(newErrors);
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!reviewData.agreedToTerms) {
+      newErrors.agreedToTerms = 'You must agree to the terms and conditions to submit';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      onSubmit();
+    }
+  };
+
+  return (
+    <div className="section-container review-section">
+      <h2 className="section-title">Review & Submit</h2>
+      <p className="section-subtitle">Review your listing details before submitting</p>
+
+      {/* Summary Cards */}
+      <div className="review-summary">
+        {/* Space Snapshot Summary */}
+        <div className="summary-card">
+          <h3>📍 Space Details</h3>
+          <div className="summary-content">
+            <p><strong>Listing Name:</strong> {formData.spaceSnapshot.listingName}</p>
+            <p><strong>Type:</strong> {formData.spaceSnapshot.typeOfSpace}</p>
+            <p><strong>Bedrooms:</strong> {formData.spaceSnapshot.bedrooms}</p>
+            <p><strong>Bathrooms:</strong> {formData.spaceSnapshot.bathrooms}</p>
+            <p><strong>Address:</strong> {formData.spaceSnapshot.address.fullAddress}</p>
+          </div>
+          <button type="button" className="btn-link">Edit</button>
+        </div>
+
+        {/* Features Summary */}
+        <div className="summary-card">
+          <h3>✨ Features</h3>
+          <div className="summary-content">
+            <p><strong>Amenities Inside:</strong> {formData.features.amenitiesInsideUnit.length} selected</p>
+            <p><strong>Amenities Outside:</strong> {formData.features.amenitiesOutsideUnit.length} selected</p>
+            <p><strong>Description:</strong> {formData.features.descriptionOfLodging.substring(0, 100)}...</p>
+          </div>
+          <button type="button" className="btn-link">Edit</button>
+        </div>
+
+        {/* Lease Style Summary */}
+        <div className="summary-card">
+          <h3>📅 Lease Style</h3>
+          <div className="summary-content">
+            <p><strong>Rental Type:</strong> {formData.leaseStyles.rentalType}</p>
+            {formData.leaseStyles.rentalType === 'Nightly' && formData.leaseStyles.availableNights && (
+              <p>
+                <strong>Available Nights:</strong>{' '}
+                {Object.values(formData.leaseStyles.availableNights).filter(Boolean).length} nights per week
+              </p>
+            )}
+            {formData.leaseStyles.rentalType === 'Weekly' && (
+              <p><strong>Pattern:</strong> {formData.leaseStyles.weeklyPattern}</p>
+            )}
+            {formData.leaseStyles.rentalType === 'Monthly' && (
+              <p><strong>Subsidy Agreement:</strong> {formData.leaseStyles.subsidyAgreement ? 'Agreed' : 'Not agreed'}</p>
+            )}
+          </div>
+          <button type="button" className="btn-link">Edit</button>
+        </div>
+
+        {/* Pricing Summary */}
+        <div className="summary-card">
+          <h3>💰 Pricing</h3>
+          <div className="summary-content">
+            {formData.leaseStyles.rentalType === 'Monthly' && (
+              <p><strong>Monthly Rate:</strong> ${formData.pricing.monthlyCompensation}</p>
+            )}
+            {formData.leaseStyles.rentalType === 'Weekly' && (
+              <p><strong>Weekly Rate:</strong> ${formData.pricing.weeklyCompensation}</p>
+            )}
+            {formData.leaseStyles.rentalType === 'Nightly' && formData.pricing.nightlyPricing && (
+              <div>
+                <p><strong>1-Night Price:</strong> ${formData.pricing.nightlyPricing.oneNightPrice}</p>
+                <p><strong>5-Night Total:</strong> ${formData.pricing.nightlyPricing.fiveNightTotal}</p>
+              </div>
+            )}
+            <p><strong>Damage Deposit:</strong> ${formData.pricing.damageDeposit}</p>
+            <p><strong>Monthly Maintenance Fee:</strong> ${formData.pricing.maintenanceFee}/month</p>
+          </div>
+          <button type="button" className="btn-link">Edit</button>
+        </div>
+
+        {/* Rules Summary */}
+        <div className="summary-card">
+          <h3>📋 Rules</h3>
+          <div className="summary-content">
+            <p><strong>Cancellation:</strong> {formData.rules.cancellationPolicy}</p>
+            <p><strong>Check-in:</strong> {formData.rules.checkInTime}</p>
+            <p><strong>Check-out:</strong> {formData.rules.checkOutTime}</p>
+            <p><strong>Max Guests:</strong> {formData.rules.numberOfGuests}</p>
+            <p><strong>House Rules:</strong> {formData.rules.houseRules.length} selected</p>
+          </div>
+          <button type="button" className="btn-link">Edit</button>
+        </div>
+
+        {/* Photos Summary */}
+        <div className="summary-card">
+          <h3>📷 Photos</h3>
+          <div className="summary-content">
+            <p><strong>Total Photos:</strong> {formData.photos.photos.length}</p>
+            <div className="photo-preview-grid">
+              {formData.photos.photos.slice(0, 4).map((photo) => (
+                <img
+                  key={photo.id}
+                  src={photo.url}
+                  alt="Property preview"
+                  className="photo-preview-thumb"
+                />
+              ))}
+            </div>
+            {formData.photos.photos.length > 4 && (
+              <p>+{formData.photos.photos.length - 4} more photos</p>
+            )}
+          </div>
+          <button type="button" className="btn-link">Edit</button>
+        </div>
+      </div>
+
+      {/* Optional Notes */}
+      <div className="form-group">
+        <label htmlFor="optionalNotes">Additional Notes (Optional)</label>
+        <textarea
+          id="optionalNotes"
+          rows={4}
+          placeholder="Any additional information you'd like to share..."
+          value={reviewData.optionalNotes || ''}
+          onChange={(e) => handleChange('optionalNotes', e.target.value)}
+        />
+      </div>
+
+      {/* Terms and Conditions */}
+      <div className="form-group">
+        <label className="checkbox-label terms-checkbox">
+          <input
+            type="checkbox"
+            checked={reviewData.agreedToTerms}
+            onChange={(e) => handleChange('agreedToTerms', e.target.checked)}
+          />
+          <span>
+            I agree to the{' '}
+            <a href="/terms" target="_blank" rel="noopener noreferrer">
+              Terms and Conditions
+            </a>{' '}
+            and{' '}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+            </a>
+            <span className="required">*</span>
+          </span>
+        </label>
+        {errors.agreedToTerms && <span className="error-message">{errors.agreedToTerms}</span>}
+      </div>
+
+      {/* Important Information */}
+      <div className="info-box">
+        <h4>Before you submit:</h4>
+        <ul>
+          <li>Your listing will be reviewed by our team within 24-48 hours</li>
+          <li>You will receive an email notification once your listing is approved</li>
+          <li>You can edit your listing anytime after submission</li>
+          <li>Your contact information will remain private and secure</li>
+        </ul>
+      </div>
+
+      {/* Navigation */}
+      <div className="section-navigation">
+        <button type="button" className="btn-back" onClick={onBack} disabled={isSubmitting}>
+          Back
+        </button>
+        <button
+          type="button"
+          className="btn-submit"
+          onClick={handleSubmit}
+          disabled={isSubmitting || !reviewData.agreedToTerms}
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit Listing'}
+        </button>
+      </div>
+
+      {isSubmitting && (
+        <div className="submitting-overlay">
+          <div className="spinner" />
+          <p>Submitting your listing...</p>
+        </div>
+      )}
+    </div>
+  );
+};
