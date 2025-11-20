@@ -143,234 +143,234 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
       </div>
     `;
 
-    // JavaScript logic (converted from the HTML document)
-    const script = shadowRoot.ownerDocument.createElement('script');
-    script.textContent = `
-      (() => {
-        const N = 5;
-        const DECAY_MIN = 0.7;
-        const DECAY_MAX = 1.0;
+    // JavaScript logic - create function that takes shadow root as parameter
+    const initSlider = (shadowRoot: ShadowRoot) => {
+      const N = 5;
+      const DECAY_MIN = 0.7;
+      const DECAY_MAX = 1.0;
 
-        const root = document.currentScript.getRootNode();
-        const $ = sel => root.getElementById(sel);
-        const fmt0 = n => n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
-        const roundUp = n => Math.ceil(n);
+      const root = shadowRoot;
+      const $ = (sel: string) => root.getElementById(sel);
+      const fmt0 = (n: number) => n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
+      const roundUp = (n: number) => Math.ceil(n);
 
-        const p1El = $('slw-p1');
-        const decayEl = $('slw-decay');
-        const totalEl = $('slw-total');
-        const r1 = $('slw-r1');
-        const r5 = $('slw-r5');
-        const rows = $('slw-rows');
-        const tag1 = $('slw-tag1');
-        const tag5 = $('slw-tag5');
-        const val1 = $('slw-val1');
-        const val5 = $('slw-val5');
-        const p1Up = $('slw-p1-up');
-        const p1Down = $('slw-p1-down');
-        const dUp = $('slw-decay-up');
-        const dDown = $('slw-decay-down');
+      const p1El = $('slw-p1') as HTMLInputElement;
+      const decayEl = $('slw-decay') as HTMLInputElement;
+      const totalEl = $('slw-total') as HTMLInputElement;
+      const r1 = $('slw-r1') as HTMLInputElement;
+      const r5 = $('slw-r5') as HTMLInputElement;
+      const rows = $('slw-rows') as HTMLElement;
+      const tag1 = $('slw-tag1') as HTMLElement;
+      const tag5 = $('slw-tag5') as HTMLElement;
+      const val1 = $('slw-val1') as HTMLElement;
+      const val5 = $('slw-val5') as HTMLElement;
+      const p1Up = $('slw-p1-up') as HTMLElement;
+      const p1Down = $('slw-p1-down') as HTMLElement;
+      const dUp = $('slw-decay-up') as HTMLElement;
+      const dDown = $('slw-decay-down') as HTMLElement;
 
-        let nightly = Array(N).fill(0);
-        let currentDecay = ${initialDecay};
+      let nightly: number[] = Array(N).fill(0);
+      let currentDecay = initialDecay;
 
-        const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
-        const sum = arr => arr.reduce((a,b)=>a+b,0);
+      const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
+      const sum = (arr: number[]) => arr.reduce((a,b)=>a+b,0);
 
-        function sumSeries(p1, d) {
-          if (Math.abs(1 - d) < 1e-10) return p1 * N;
-          return p1 * (1 - Math.pow(d, N)) / (1 - d);
+      function sumSeries(p1: number, d: number) {
+        if (Math.abs(1 - d) < 1e-10) return p1 * N;
+        return p1 * (1 - Math.pow(d, N)) / (1 - d);
+      }
+
+      function solveDecay(p1: number, S: number) {
+        if (p1 <= 0) return DECAY_MIN;
+        const Smin = sumSeries(p1, DECAY_MIN);
+        const Smax = sumSeries(p1, DECAY_MAX);
+        const T = clamp(S, Smin, Smax);
+        if (Math.abs(T - Smin) < 1e-6) return DECAY_MIN;
+        if (Math.abs(T - Smax) < 1e-6) return DECAY_MAX;
+        let lo = DECAY_MIN, hi = DECAY_MAX, mid: number;
+        for (let i=0;i<50;i++) {
+          mid = (lo+hi)/2;
+          const Sm = sumSeries(p1, mid);
+          if (Sm < T) lo = mid; else hi = mid;
         }
+        return clamp((lo+hi)/2, DECAY_MIN, DECAY_MAX);
+      }
 
-        function solveDecay(p1, S) {
-          if (p1 <= 0) return DECAY_MIN;
-          const Smin = sumSeries(p1, DECAY_MIN);
-          const Smax = sumSeries(p1, DECAY_MAX);
-          const T = clamp(S, Smin, Smax);
-          if (Math.abs(T - Smin) < 1e-6) return DECAY_MIN;
-          if (Math.abs(T - Smax) < 1e-6) return DECAY_MAX;
-          let lo = DECAY_MIN, hi = DECAY_MAX, mid;
-          for (let i=0;i<50;i++) {
-            mid = (lo+hi)/2;
-            const Sm = sumSeries(p1, mid);
-            if (Sm < T) lo = mid; else hi = mid;
-          }
-          return clamp((lo+hi)/2, DECAY_MIN, DECAY_MAX);
-        }
+      function updateBounds() {
+        const p1 = +r1.value || 0;
+        const minTotal = sumSeries(p1, DECAY_MIN);
+        const maxTotal = sumSeries(p1, DECAY_MAX);
+        r5.min = String(Math.round(minTotal));
+        r5.max = String(Math.round(Math.max(maxTotal, minTotal)));
+      }
 
-        function updateBounds() {
-          const p1 = +r1.value || 0;
-          const minTotal = sumSeries(p1, DECAY_MIN);
-          const maxTotal = sumSeries(p1, DECAY_MAX);
-          r5.min = Math.round(minTotal);
-          r5.max = Math.round(Math.max(maxTotal, minTotal));
-        }
-
-        function rebuildFrom(p1, d) {
-          nightly[0] = roundUp(+p1);
-          for (let k=1;k<N;k++) nightly[k] = roundUp(nightly[k-1] * d);
-          syncUI();
-        }
-
-        function placeTags() {
-          const wrap = root.querySelector('.ranges');
-          const rectWrap = wrap.getBoundingClientRect();
-          const pad = 12;
-          const minGap = 84;
-
-          const posOn = (input) => {
-            const r = input.getBoundingClientRect();
-            const min = +input.min, max = +input.max, val = +input.value;
-            const t = (val - min) / (max - min || 1);
-            return (r.left - rectWrap.left) + r.width * t;
-          };
-
-          let x1 = posOn(r1);
-          let x5 = posOn(r5);
-
-          const clampX = (x) => Math.max(pad, Math.min(rectWrap.width - pad, x));
-          if (Math.abs(x1 - x5) < minGap) {
-            const mid = (x1 + x5) / 2;
-            x1 = mid - minGap / 2;
-            x5 = mid + minGap / 2;
-          }
-          x1 = clampX(x1);
-          x5 = clampX(x5);
-
-          tag1.style.left = x1 + 'px';  val1.style.left = x1 + 'px';
-          tag5.style.left = x5 + 'px';  val5.style.left = x5 + 'px';
-
-          val1.textContent = fmt0(+r1.value);
-          val5.textContent = fmt0(+r5.value);
-        }
-
-        function renderTable() {
-          let cum = 0; const body = [];
-          for (let i=0;i<N;i++) {
-            cum += nightly[i];
-            body.push(\`<tr><td>\${i+1}</td><td>\${fmt0(nightly[i])}</td><td>\${fmt0(cum)}</td></tr>\`);
-          }
-          rows.innerHTML = body.join('');
-        }
-
-        function broadcast() {
-          const roundedNightly = nightly.map(v => Math.round(v));
-          const payload = {
-            p1: roundedNightly[0],
-            n1: roundedNightly[0],
-            n2: roundedNightly[1],
-            n3: roundedNightly[2],
-            n4: roundedNightly[3],
-            n5: roundedNightly[4],
-            decay: +currentDecay.toFixed(3),
-            total: sum(roundedNightly)
-          };
-
-          // Dispatch to parent React component
-          const event = new CustomEvent('nightly-prices-update', {
-            detail: payload,
-            bubbles: true,
-            composed: true
-          });
-          root.host.dispatchEvent(event);
-        }
-
-        function syncUI() {
-          const p1 = nightly[0];
-          const total = sum(nightly);
-          p1El.value = Math.round(p1);
-          decayEl.value = currentDecay.toFixed(3);
-          totalEl.value = Math.round(total);
-          r1.value = Math.round(p1);
-          updateBounds();
-          const Sclamped = clamp(total, +r5.min, +r5.max);
-          r5.value = Math.round(Sclamped);
-          placeTags();
-          renderTable();
-          broadcast();
-        }
-
-        function commitP1() {
-          const raw = (p1El.value||'').trim(); if (!raw) return;
-          const p1 = Math.max(0, parseFloat(raw)); if (!isFinite(p1)) return;
-          const d = currentDecay;
-          rebuildFrom(p1, d);
-        }
-
-        function commitDecay() {
-          const raw = (decayEl.value||'').trim(); if (!raw) return;
-          let d = parseFloat(raw); if (!isFinite(d)) return;
-          d = clamp(d, DECAY_MIN, DECAY_MAX);
-          currentDecay = d;
-          const p1 = Math.max(0, parseFloat(p1El.value||r1.value||'0'));
-          rebuildFrom(p1, d);
-        }
-
-        function onDragP1(val) {
-          const p1 = Math.max(0, val);
-          updateBounds();
-          const Sfixed = clamp(+r5.value || 0, +r5.min, +r5.max);
-          const d = solveDecay(p1, Sfixed);
-          currentDecay = d;
-          rebuildFrom(p1, d);
-          r5.value = Math.round(Sfixed);
-          placeTags();
-        }
-
-        function onDragTotal(Sval) {
-          const p1 = +r1.value || 0;
-          updateBounds();
-          const S = clamp(Sval, +r5.min, +r5.max);
-          const d = solveDecay(p1, S);
-          currentDecay = d;
-          rebuildFrom(p1, d);
-          r1.value = Math.round(p1);
-          placeTags();
-        }
-
-        // Events
-        p1El.addEventListener('keydown', e => { if (e.key === 'Enter') commitP1(); });
-        p1El.addEventListener('blur', commitP1);
-        decayEl.addEventListener('input', commitDecay);
-        decayEl.addEventListener('change', commitDecay);
-        decayEl.addEventListener('keydown', e => { if (e.key === 'Enter') commitDecay(); });
-        decayEl.addEventListener('blur', commitDecay);
-        r1.addEventListener('input', () => onDragP1(parseFloat(r1.value)));
-        r5.addEventListener('input', () => onDragTotal(parseFloat(r5.value)));
-
-        // Spinners
-        p1Up.addEventListener('click', () => { p1El.value = Math.round(+p1El.value||0) + 1; commitP1(); });
-        p1Down.addEventListener('click', () => { p1El.value = Math.max(0, Math.round(+p1El.value||0) - 1); commitP1(); });
-        dUp.addEventListener('click', () => {
-          currentDecay = clamp(currentDecay + 0.001, DECAY_MIN, DECAY_MAX);
-          decayEl.value = currentDecay.toFixed(3);
-          const p1 = Math.max(0, parseFloat(p1El.value||r1.value||'0'));
-          rebuildFrom(p1, currentDecay);
-        });
-        dDown.addEventListener('click', () => {
-          currentDecay = clamp(currentDecay - 0.001, DECAY_MIN, DECAY_MAX);
-          decayEl.value = currentDecay.toFixed(3);
-          const p1 = Math.max(0, parseFloat(p1El.value||r1.value||'0'));
-          rebuildFrom(p1, currentDecay);
-        });
-
-        // Resize observer
-        const ro = new ResizeObserver(() => placeTags());
-        ro.observe(root.host);
-
-        // Initialize
-        const p1 = ${initialP1};
-        const d = ${initialDecay};
-        currentDecay = d;
-        nightly = Array(N).fill(0);
-        nightly[0] = p1;
-        for (let i=1;i<N;i++) nightly[i] = roundUp(nightly[i-1]*d);
-        r1.value = Math.round(p1);
-        r5.value = Math.round(sumSeries(p1,d));
+      function rebuildFrom(p1: number, d: number) {
+        nightly[0] = roundUp(+p1);
+        for (let k=1;k<N;k++) nightly[k] = roundUp(nightly[k-1] * d);
         syncUI();
-      })();
-    `;
-    shadowRoot.appendChild(script);
+      }
+
+      function placeTags() {
+        const wrap = root.querySelector('.ranges') as HTMLElement;
+        const rectWrap = wrap.getBoundingClientRect();
+        const pad = 12;
+        const minGap = 84;
+
+        const posOn = (input: HTMLInputElement) => {
+          const r = input.getBoundingClientRect();
+          const min = +input.min, max = +input.max, val = +input.value;
+          const t = (val - min) / (max - min || 1);
+          return (r.left - rectWrap.left) + r.width * t;
+        };
+
+        let x1 = posOn(r1);
+        let x5 = posOn(r5);
+
+        const clampX = (x: number) => Math.max(pad, Math.min(rectWrap.width - pad, x));
+        if (Math.abs(x1 - x5) < minGap) {
+          const mid = (x1 + x5) / 2;
+          x1 = mid - minGap / 2;
+          x5 = mid + minGap / 2;
+        }
+        x1 = clampX(x1);
+        x5 = clampX(x5);
+
+        tag1.style.left = x1 + 'px';  val1.style.left = x1 + 'px';
+        tag5.style.left = x5 + 'px';  val5.style.left = x5 + 'px';
+
+        val1.textContent = fmt0(+r1.value);
+        val5.textContent = fmt0(+r5.value);
+      }
+
+      function renderTable() {
+        let cum = 0;
+        const body: string[] = [];
+        for (let i=0;i<N;i++) {
+          cum += nightly[i];
+          body.push(`<tr><td>${i+1}</td><td>${fmt0(nightly[i])}</td><td>${fmt0(cum)}</td></tr>`);
+        }
+        rows.innerHTML = body.join('');
+      }
+
+      function broadcast() {
+        const roundedNightly = nightly.map(v => Math.round(v));
+        const payload = {
+          p1: roundedNightly[0],
+          n1: roundedNightly[0],
+          n2: roundedNightly[1],
+          n3: roundedNightly[2],
+          n4: roundedNightly[3],
+          n5: roundedNightly[4],
+          decay: +currentDecay.toFixed(3),
+          total: sum(roundedNightly)
+        };
+
+        // Dispatch to parent React component
+        const event = new CustomEvent('nightly-prices-update', {
+          detail: payload,
+          bubbles: true,
+          composed: true
+        });
+        root.host.dispatchEvent(event);
+      }
+
+      function syncUI() {
+        const p1 = nightly[0];
+        const total = sum(nightly);
+        p1El.value = String(Math.round(p1));
+        decayEl.value = currentDecay.toFixed(3);
+        totalEl.value = String(Math.round(total));
+        r1.value = String(Math.round(p1));
+        updateBounds();
+        const Sclamped = clamp(total, +r5.min, +r5.max);
+        r5.value = String(Math.round(Sclamped));
+        placeTags();
+        renderTable();
+        broadcast();
+      }
+
+      function commitP1() {
+        const raw = (p1El.value||'').trim(); if (!raw) return;
+        const p1 = Math.max(0, parseFloat(raw)); if (!isFinite(p1)) return;
+        const d = currentDecay;
+        rebuildFrom(p1, d);
+      }
+
+      function commitDecay() {
+        const raw = (decayEl.value||'').trim(); if (!raw) return;
+        let d = parseFloat(raw); if (!isFinite(d)) return;
+        d = clamp(d, DECAY_MIN, DECAY_MAX);
+        currentDecay = d;
+        const p1 = Math.max(0, parseFloat(p1El.value||r1.value||'0'));
+        rebuildFrom(p1, d);
+      }
+
+      function onDragP1(val: number) {
+        const p1 = Math.max(0, val);
+        updateBounds();
+        const Sfixed = clamp(+r5.value || 0, +r5.min, +r5.max);
+        const d = solveDecay(p1, Sfixed);
+        currentDecay = d;
+        rebuildFrom(p1, d);
+        r5.value = String(Math.round(Sfixed));
+        placeTags();
+      }
+
+      function onDragTotal(Sval: number) {
+        const p1 = +r1.value || 0;
+        updateBounds();
+        const S = clamp(Sval, +r5.min, +r5.max);
+        const d = solveDecay(p1, S);
+        currentDecay = d;
+        rebuildFrom(p1, d);
+        r1.value = String(Math.round(p1));
+        placeTags();
+      }
+
+      // Events
+      p1El.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Enter') commitP1(); });
+      p1El.addEventListener('blur', commitP1);
+      decayEl.addEventListener('input', commitDecay);
+      decayEl.addEventListener('change', commitDecay);
+      decayEl.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Enter') commitDecay(); });
+      decayEl.addEventListener('blur', commitDecay);
+      r1.addEventListener('input', () => onDragP1(parseFloat(r1.value)));
+      r5.addEventListener('input', () => onDragTotal(parseFloat(r5.value)));
+
+      // Spinners
+      p1Up.addEventListener('click', () => { p1El.value = String(Math.round(+p1El.value||0) + 1); commitP1(); });
+      p1Down.addEventListener('click', () => { p1El.value = String(Math.max(0, Math.round(+p1El.value||0) - 1)); commitP1(); });
+      dUp.addEventListener('click', () => {
+        currentDecay = clamp(currentDecay + 0.001, DECAY_MIN, DECAY_MAX);
+        decayEl.value = currentDecay.toFixed(3);
+        const p1 = Math.max(0, parseFloat(p1El.value||r1.value||'0'));
+        rebuildFrom(p1, currentDecay);
+      });
+      dDown.addEventListener('click', () => {
+        currentDecay = clamp(currentDecay - 0.001, DECAY_MIN, DECAY_MAX);
+        decayEl.value = currentDecay.toFixed(3);
+        const p1 = Math.max(0, parseFloat(p1El.value||r1.value||'0'));
+        rebuildFrom(p1, currentDecay);
+      });
+
+      // Resize observer
+      const ro = new ResizeObserver(() => placeTags());
+      ro.observe(root.host);
+
+      // Initialize
+      const p1 = initialP1;
+      const d = initialDecay;
+      currentDecay = d;
+      nightly = Array(N).fill(0);
+      nightly[0] = p1;
+      for (let i=1;i<N;i++) nightly[i] = roundUp(nightly[i-1]*d);
+      r1.value = String(Math.round(p1));
+      r5.value = String(Math.round(sumSeries(p1,d)));
+      syncUI();
+    };
+
+    // Call the initialization function
+    initSlider(shadowRoot);
 
     // Listen for price updates from Shadow DOM
     const handlePriceUpdate = (e: Event) => {
