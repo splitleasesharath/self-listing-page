@@ -89,6 +89,9 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         #slw-decay::-webkit-outer-spin-button,
         #slw-decay::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
         #slw-decay{ -moz-appearance:textfield; appearance:textfield; }
+        #slw-p1::-webkit-outer-spin-button,
+        #slw-p1::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+        #slw-p1{ -moz-appearance:textfield; appearance:textfield; }
       </style>
 
       <div class="app">
@@ -171,7 +174,6 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
 
       let nightly: number[] = Array(N).fill(0);
       let currentDecay = initialDecay;
-      let rafId: number | null = null;
       let broadcastTimeoutId: number | null = null;
 
       const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
@@ -276,7 +278,7 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         root.host.dispatchEvent(event);
       }
 
-      // Debounced broadcast for smoother dragging
+      // Debounced broadcast for smoother dragging (16ms = ~60fps)
       function broadcastDebounced() {
         if (broadcastTimeoutId !== null) {
           clearTimeout(broadcastTimeoutId);
@@ -284,7 +286,7 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         broadcastTimeoutId = window.setTimeout(() => {
           broadcast();
           broadcastTimeoutId = null;
-        }, 100);
+        }, 16);
       }
 
       function syncUI(skipBroadcast = false) {
@@ -325,39 +327,25 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
       }
 
       function onDragP1(val: number) {
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-        }
-
-        rafId = requestAnimationFrame(() => {
-          const p1 = Math.max(0, val);
-          updateBounds();
-          const Sfixed = clamp(+r5.value || 0, +r5.min, +r5.max);
-          const d = solveDecay(p1, Sfixed);
-          currentDecay = d;
-          rebuildFrom(p1, d, true); // isDragging = true
-          r5.value = String(Math.round(Sfixed));
-          placeTags();
-          rafId = null;
-        });
+        const p1 = Math.max(0, val);
+        updateBounds();
+        const Sfixed = clamp(+r5.value || 0, +r5.min, +r5.max);
+        const d = solveDecay(p1, Sfixed);
+        currentDecay = d;
+        rebuildFrom(p1, d, true); // isDragging = true
+        r5.value = String(Math.round(Sfixed));
+        placeTags();
       }
 
       function onDragTotal(Sval: number) {
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-        }
-
-        rafId = requestAnimationFrame(() => {
-          const p1 = +r1.value || 0;
-          updateBounds();
-          const S = clamp(Sval, +r5.min, +r5.max);
-          const d = solveDecay(p1, S);
-          currentDecay = d;
-          rebuildFrom(p1, d, true); // isDragging = true
-          r1.value = String(Math.round(p1));
-          placeTags();
-          rafId = null;
-        });
+        const p1 = +r1.value || 0;
+        updateBounds();
+        const S = clamp(Sval, +r5.min, +r5.max);
+        const d = solveDecay(p1, S);
+        currentDecay = d;
+        rebuildFrom(p1, d, true); // isDragging = true
+        r1.value = String(Math.round(p1));
+        placeTags();
       }
 
       // Events
