@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import type { Features } from '../types/listing.types';
 import { AMENITIES_INSIDE, AMENITIES_OUTSIDE } from '../types/listing.types';
+import { getNeighborhoodByZipCode } from '../utils/neighborhoodService';
 
 interface Section2Props {
   data: Features;
   onChange: (data: Features) => void;
   onNext: () => void;
   onBack: () => void;
+  zipCode?: string;
 }
 
 export const Section2Features: React.FC<Section2Props> = ({
   data,
   onChange,
   onNext,
-  onBack
+  onBack,
+  zipCode
 }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoadingNeighborhood, setIsLoadingNeighborhood] = useState(false);
 
   const handleChange = (field: keyof Features, value: any) => {
     onChange({ ...data, [field]: value });
@@ -62,6 +66,29 @@ The neighborhood is [describe neighborhood characteristics - quiet, vibrant, fam
 We look forward to hosting you!`;
 
     handleChange('descriptionOfLodging', template);
+  };
+
+  const loadNeighborhoodTemplate = async () => {
+    if (!zipCode) {
+      alert('Please complete Section 1 (Address) first to load neighborhood template.');
+      return;
+    }
+
+    setIsLoadingNeighborhood(true);
+    try {
+      const neighborhood = await getNeighborhoodByZipCode(zipCode);
+
+      if (neighborhood && neighborhood.description) {
+        handleChange('neighborhoodDescription', neighborhood.description);
+      } else {
+        alert(`No neighborhood information found for ZIP code: ${zipCode}`);
+      }
+    } catch (error) {
+      console.error('Error loading neighborhood template:', error);
+      alert('Error loading neighborhood template. Please try again.');
+    } finally {
+      setIsLoadingNeighborhood(false);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -163,9 +190,19 @@ We look forward to hosting you!`;
 
         {/* Right Column: Neighborhood Description */}
         <div className="form-group">
-          <label htmlFor="neighborhoodDescription">
-            Describe Life in the Neighborhood (Optional)
-          </label>
+          <div className="label-with-action">
+            <label htmlFor="neighborhoodDescription">
+              Describe Life in the Neighborhood (Optional)
+            </label>
+            <button
+              type="button"
+              className="btn-link"
+              onClick={loadNeighborhoodTemplate}
+              disabled={isLoadingNeighborhood}
+            >
+              {isLoadingNeighborhood ? 'loading...' : 'load template'}
+            </button>
+          </div>
           <textarea
             id="neighborhoodDescription"
             rows={8}

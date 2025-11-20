@@ -171,6 +171,7 @@ export const SelfListingPage: React.FC = () => {
               onChange={(data) => setFormData({ ...formData, features: data })}
               onNext={handleNext}
               onBack={handleBack}
+              zipCode={formData.spaceSnapshot.address.zip}
             />
           )}
 
