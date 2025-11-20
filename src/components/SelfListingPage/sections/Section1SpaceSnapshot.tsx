@@ -57,20 +57,24 @@ export const Section1SpaceSnapshot: React.FC<Section1Props> = ({
       try {
         console.log('Initializing Google Maps Autocomplete...');
 
-        // New York City coordinates
-        const nycCenter = new window.google.maps.LatLng(40.7128, -74.0060);
+        // Manhattan coordinates (more central to the borough)
+        const manhattanCenter = new window.google.maps.LatLng(40.7831, -73.9712);
 
-        // Create autocomplete with options - more permissive settings
+        // Create circle bounds for 100km radius around Manhattan
+        const circleBounds = new window.google.maps.Circle({
+          center: manhattanCenter,
+          radius: 100000 // 100,000 meters = 100km
+        }).getBounds();
+
+        // Create autocomplete with strict bounds restriction
         const autocomplete = new window.google.maps.places.Autocomplete(
           addressInputRef.current,
           {
-            types: ['geocode', 'establishment'], // Allow both addresses and places
+            types: ['address'], // Restrict to addresses only (no establishments)
             componentRestrictions: { country: 'us' },
-            // Bias results towards NYC within 100km radius
-            locationBias: {
-              center: nycCenter,
-              radius: 100000 // 100km in meters
-            },
+            // Strictly restrict results to 100km radius around Manhattan
+            bounds: circleBounds,
+            strictBounds: true, // Only return results within bounds
             fields: ['address_components', 'formatted_address', 'geometry', 'name', 'place_id']
           }
         );
