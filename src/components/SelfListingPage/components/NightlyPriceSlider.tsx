@@ -26,13 +26,19 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
   onPricesChange
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
+  const shadowRootRef = useRef<ShadowRoot | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current || mounted) return;
+    if (!containerRef.current) return;
 
     const container = containerRef.current;
-    const shadowRoot = container.attachShadow({ mode: 'open' });
+
+    // Check if shadow root already exists, if not create it
+    if (!shadowRootRef.current) {
+      shadowRootRef.current = container.shadowRoot || container.attachShadow({ mode: 'open' });
+    }
+
+    const shadowRoot = shadowRootRef.current;
 
     // Build the Shadow DOM content
     shadowRoot.innerHTML = `
@@ -365,8 +371,6 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
     `;
     shadowRoot.appendChild(script);
 
-    setMounted(true);
-
     // Listen for price updates from Shadow DOM
     const handlePriceUpdate = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -380,7 +384,7 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
     return () => {
       container.removeEventListener('nightly-prices-update', handlePriceUpdate);
     };
-  }, [mounted, initialP1, initialDecay, onPricesChange]);
+  }, [initialP1, initialDecay, onPricesChange]);
 
   return <div ref={containerRef} style={{ width: '100%', minHeight: '400px' }} />;
 };

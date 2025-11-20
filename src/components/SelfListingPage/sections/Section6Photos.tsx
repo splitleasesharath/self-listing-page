@@ -107,17 +107,19 @@ export const Section6Photos: React.FC<Section6Props> = ({ data, onChange, onNext
           onChange={handleFileUpload}
           style={{ display: 'none' }}
         />
-        <button
-          type="button"
-          className="btn-upload"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          📷 Upload Photos
-        </button>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn-upload"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            📷 Upload Photos
+          </button>
 
-        <button type="button" className="btn-secondary" onClick={openMobileUpload}>
-          📱 Do you want to continue on mobile?
-        </button>
+          <button type="button" className="btn-secondary" onClick={openMobileUpload}>
+            📱 Do you want to continue on mobile?
+          </button>
+        </div>
 
         {errors.photos && <div className="error-message">{errors.photos}</div>}
 
