@@ -4,7 +4,29 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>temp-project</title>
+    <title>Self-Listing Page - Split Lease</title>
+
+    <!-- Google Maps JavaScript API -->
+    <script>
+      // Load Google Maps API with the API key from environment variable
+      (function() {
+        const apiKey = 'AIzaSyCFcO3jCTvR69iA4UAxPi-sWHJ7zWPMJWo';
+        if (apiKey) {
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`;
+          script.async = true;
+          script.defer = true;
+          document.head.appendChild(script);
+
+          // Define the callback function that Google Maps calls when loaded
+          window.initMap = function() {
+            console.log('Google Maps API loaded successfully');
+          };
+        } else {
+          console.warn('Google Maps API key not found. Address autocomplete will not work.');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
