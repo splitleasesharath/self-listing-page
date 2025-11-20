@@ -8,11 +8,14 @@ interface NightlyPriceSliderProps {
   n4?: number;
   n5?: number;
   onPricesChange?: (data: {
-    nightly: number[];
-    cumulative: number[];
-    total: number;
-    decay: number;
     p1: number;
+    n1: number;
+    n2: number;
+    n3: number;
+    n4: number;
+    n5: number;
+    decay: number;
+    total: number;
   }) => void;
 }
 
@@ -251,23 +254,21 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         }
 
         function broadcast() {
+          const roundedNightly = nightly.map(v => Math.round(v));
           const payload = {
-            nightly: nightly.map(v => Math.round(v)),
-            total: sum(nightly),
+            p1: roundedNightly[0],
+            n1: roundedNightly[0],
+            n2: roundedNightly[1],
+            n3: roundedNightly[2],
+            n4: roundedNightly[3],
+            n5: roundedNightly[4],
             decay: +currentDecay.toFixed(3),
-            p1: Math.round(+p1El.value || +r1.value || nightly[0] || 0)
+            total: sum(roundedNightly)
           };
-
-          const cumulative = [];
-          let running = 0;
-          for (let v of payload.nightly){
-            running += v;
-            cumulative.push(running);
-          }
 
           // Dispatch to parent React component
           const event = new CustomEvent('nightly-prices-update', {
-            detail: { ...payload, cumulative },
+            detail: payload,
             bubbles: true,
             composed: true
           });
