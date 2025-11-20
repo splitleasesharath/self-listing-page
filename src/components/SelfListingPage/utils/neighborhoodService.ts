@@ -18,12 +18,11 @@ export async function getNeighborhoodByZipCode(zipCode: string): Promise<Neighbo
   }
 
   try {
-    // Query the table using JSONB contains operator
-    const { data, error } = await supabase
-      .from('zat_geo_hood_mediumlevel')
-      .select('Display, "Neighborhood Description", Zips')
-      .contains('Zips', [zipCode])
-      .limit(1);
+    // Use RPC function to query JSONB array with proper PostgreSQL syntax
+    // This bypasses issues with Supabase JS client's JSONB handling
+    const { data, error } = await supabase.rpc('get_neighborhood_by_zip', {
+      zip_code: zipCode
+    });
 
     if (error) {
       console.error('Error fetching neighborhood data:', error);
