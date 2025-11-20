@@ -44,8 +44,10 @@ export const SelfListingPage: React.FC = () => {
   const handleNext = () => {
     if (currentSection < 7) {
       const completedSections = [...new Set([...formData.completedSections, currentSection])];
-      setFormData({ ...formData, completedSections });
-      handleSectionChange(currentSection + 1);
+      const nextSection = currentSection + 1;
+      setFormData({ ...formData, completedSections, currentSection: nextSection });
+      setCurrentSection(nextSection);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

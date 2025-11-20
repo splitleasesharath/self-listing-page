@@ -30,6 +30,12 @@ export const Section1SpaceSnapshot: React.FC<Section1Props> = ({
   const [showManualAddress, setShowManualAddress] = useState(false);
   const addressInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
+  const dataRef = useRef(data);
+
+  // Keep dataRef updated with latest data
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
 
   // Initialize Google Maps Autocomplete
   useEffect(() => {
@@ -158,8 +164,9 @@ export const Section1SpaceSnapshot: React.FC<Section1Props> = ({
 
           console.log('Parsed address:', parsedAddress);
 
+          // Use dataRef.current to get the latest form data
           onChange({
-            ...data,
+            ...dataRef.current,
             address: parsedAddress
           });
 
