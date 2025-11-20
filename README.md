@@ -24,6 +24,20 @@ A multi-step wizard form for property hosts to create and submit their rental li
 npm install
 ```
 
+### Environment Setup
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+2. Add your Google Maps API key to `.env`:
+```env
+VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+```
+
+The Google Maps API key is required for address autocomplete functionality in Section 1 (Space Snapshot).
+
 ### Development
 
 Run the development server on port 8000:
@@ -33,6 +47,8 @@ npm run dev
 ```
 
 Visit [http://localhost:8000](http://localhost:8000) to view the application.
+
+**Note:** If port 8000 is in use, Vite will automatically use the next available port (8001, 8002, etc.)
 
 ### Build
 
