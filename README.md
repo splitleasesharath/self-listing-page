@@ -10,8 +10,14 @@ A multi-step wizard form for property hosts to create and submit their rental li
   - Listing name with character limit
   - Property type, bedrooms, bathrooms, beds
   - Kitchen and parking information
-  - Address input with manual confirmation
+  - Address input with Google Maps autocomplete
   - Neighborhood selection based on ZIP code
+- **Features Section**: Amenities and property descriptions
+  - Inside and outside unit amenities with quick-load presets
+  - Lodging description with template option
+  - Neighborhood description with automatic template loading from Supabase
+- **Google Maps Integration**: Address autocomplete for easy location entry
+- **Supabase Integration**: Automatic neighborhood descriptions based on ZIP code
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 - **Type-Safe**: Full TypeScript implementation with defined interfaces
 - **Form State Management**: Centralized state management for all form data
@@ -31,12 +37,16 @@ npm install
 cp .env.example .env
 ```
 
-2. Add your Google Maps API key to `.env`:
+2. Add your API keys to `.env`:
 ```env
 VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-The Google Maps API key is required for address autocomplete functionality in Section 1 (Space Snapshot).
+**Required APIs:**
+- **Google Maps API**: Required for address autocomplete in Section 1
+- **Supabase**: Required for neighborhood template loading in Section 2
 
 ### Development
 
