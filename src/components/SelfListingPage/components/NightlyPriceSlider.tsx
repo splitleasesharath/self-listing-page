@@ -331,24 +331,23 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
 
       function onDragP1(val: number) {
         const p1 = Math.max(0, val);
-        // Update r1 value first so updateBounds uses new p1
-        r1.value = String(Math.round(p1));
-        // Update bounds immediately so r5 has correct range
         updateBounds();
-        // Clamp current r5 value to new bounds
         const Sfixed = clamp(+r5.value || 0, +r5.min, +r5.max);
         const d = solveDecay(p1, Sfixed);
         currentDecay = d;
         rebuildFrom(p1, d, true); // isDragging = true
+        r5.value = String(Math.round(Sfixed));
         placeTags();
       }
 
       function onDragTotal(Sval: number) {
         const p1 = +r1.value || 0;
-        // Use the Sval directly - browser already constrains it to slider min/max
-        const d = solveDecay(p1, Sval);
+        updateBounds();
+        const S = clamp(Sval, +r5.min, +r5.max);
+        const d = solveDecay(p1, S);
         currentDecay = d;
-        rebuildFrom(p1, d, true); // isDragging = true, this calls updateBounds()
+        rebuildFrom(p1, d, true); // isDragging = true
+        r1.value = String(Math.round(p1));
         placeTags();
       }
 
