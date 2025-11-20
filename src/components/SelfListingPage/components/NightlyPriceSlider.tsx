@@ -171,6 +171,8 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
 
       let nightly: number[] = Array(N).fill(0);
       let currentDecay = initialDecay;
+      let rafId: number | null = null;
+      let broadcastTimeoutId: number | null = null;
 
       const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
       const sum = (arr: number[]) => arr.reduce((a,b)=>a+b,0);
@@ -204,10 +206,10 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         r5.max = String(Math.round(Math.max(maxTotal, minTotal)));
       }
 
-      function rebuildFrom(p1: number, d: number) {
+      function rebuildFrom(p1: number, d: number, isDragging = false) {
         nightly[0] = roundUp(+p1);
         for (let k=1;k<N;k++) nightly[k] = roundUp(nightly[k-1] * d);
-        syncUI();
+        syncUI(isDragging);
       }
 
       function placeTags() {
@@ -274,7 +276,18 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         root.host.dispatchEvent(event);
       }
 
-      function syncUI() {
+      // Debounced broadcast for smoother dragging
+      function broadcastDebounced() {
+        if (broadcastTimeoutId !== null) {
+          clearTimeout(broadcastTimeoutId);
+        }
+        broadcastTimeoutId = window.setTimeout(() => {
+          broadcast();
+          broadcastTimeoutId = null;
+        }, 100);
+      }
+
+      function syncUI(skipBroadcast = false) {
         const p1 = nightly[0];
         const total = sum(nightly);
         p1El.value = String(Math.round(p1));
@@ -286,7 +299,13 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         r5.value = String(Math.round(Sclamped));
         placeTags();
         renderTable();
-        broadcast();
+
+        // Use debounced broadcast during drag operations
+        if (skipBroadcast) {
+          broadcastDebounced();
+        } else {
+          broadcast();
+        }
       }
 
       function commitP1() {
@@ -306,25 +325,39 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
       }
 
       function onDragP1(val: number) {
-        const p1 = Math.max(0, val);
-        updateBounds();
-        const Sfixed = clamp(+r5.value || 0, +r5.min, +r5.max);
-        const d = solveDecay(p1, Sfixed);
-        currentDecay = d;
-        rebuildFrom(p1, d);
-        r5.value = String(Math.round(Sfixed));
-        placeTags();
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+        }
+
+        rafId = requestAnimationFrame(() => {
+          const p1 = Math.max(0, val);
+          updateBounds();
+          const Sfixed = clamp(+r5.value || 0, +r5.min, +r5.max);
+          const d = solveDecay(p1, Sfixed);
+          currentDecay = d;
+          rebuildFrom(p1, d, true); // isDragging = true
+          r5.value = String(Math.round(Sfixed));
+          placeTags();
+          rafId = null;
+        });
       }
 
       function onDragTotal(Sval: number) {
-        const p1 = +r1.value || 0;
-        updateBounds();
-        const S = clamp(Sval, +r5.min, +r5.max);
-        const d = solveDecay(p1, S);
-        currentDecay = d;
-        rebuildFrom(p1, d);
-        r1.value = String(Math.round(p1));
-        placeTags();
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+        }
+
+        rafId = requestAnimationFrame(() => {
+          const p1 = +r1.value || 0;
+          updateBounds();
+          const S = clamp(Sval, +r5.min, +r5.max);
+          const d = solveDecay(p1, S);
+          currentDecay = d;
+          rebuildFrom(p1, d, true); // isDragging = true
+          r1.value = String(Math.round(p1));
+          placeTags();
+          rafId = null;
+        });
       }
 
       // Events
@@ -334,8 +367,14 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
       decayEl.addEventListener('change', commitDecay);
       decayEl.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Enter') commitDecay(); });
       decayEl.addEventListener('blur', commitDecay);
+
+      // Range slider events with RAF optimization
       r1.addEventListener('input', () => onDragP1(parseFloat(r1.value)));
       r5.addEventListener('input', () => onDragTotal(parseFloat(r5.value)));
+
+      // Broadcast immediately when dragging stops
+      r1.addEventListener('change', () => broadcast());
+      r5.addEventListener('change', () => broadcast());
 
       // Spinners
       p1Up.addEventListener('click', () => { p1El.value = String(Math.round(+p1El.value||0) + 1); commitP1(); });
