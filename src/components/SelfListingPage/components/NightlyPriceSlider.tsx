@@ -47,7 +47,7 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
     shadowRoot.innerHTML = `
       <style>
         :host { all: initial; }
-        .app{ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:#111827; background:#fff; max-width:1100px; width:100%; margin:0; padding:12px; box-sizing:border-box; }
+        .app{ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:#111827; background:#fff; max-width:100%; width:100%; margin:0; padding:12px; box-sizing:border-box; }
         .row{ display:grid; grid-template-columns: 1fr auto auto; gap:16px; align-items:end; margin: 8px 0 16px; }
         .field{ display:grid; gap:6px; min-width:0; }
         .label{ font-size:13px; color:#6b7280; }
@@ -354,7 +354,7 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
       // Events
       p1El.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Enter') commitP1(); });
       p1El.addEventListener('blur', commitP1);
-      decayEl.addEventListener('input', commitDecay);
+      // Only commit decay on blur/enter/change, NOT on input (allows typing full number)
       decayEl.addEventListener('change', commitDecay);
       decayEl.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Enter') commitDecay(); });
       decayEl.addEventListener('blur', commitDecay);
