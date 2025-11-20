@@ -208,10 +208,10 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         r5.max = String(Math.round(Math.max(maxTotal, minTotal)));
       }
 
-      function rebuildFrom(p1: number, d: number, isDragging = false) {
+      function rebuildFrom(p1: number, d: number, isDragging = false, skipR1Update = false, skipR5Update = false) {
         nightly[0] = roundUp(+p1);
         for (let k=1;k<N;k++) nightly[k] = roundUp(nightly[k-1] * d);
-        syncUI(isDragging);
+        syncUI(isDragging, skipR1Update, skipR5Update);
       }
 
       function placeTags() {
@@ -289,19 +289,26 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         }, 16);
       }
 
-      function syncUI(skipBroadcast = false) {
+      function syncUI(skipBroadcast = false, skipR1Update = false, skipR5Update = false) {
         const p1 = nightly[0];
         const total = sum(nightly);
         p1El.value = String(Math.round(p1));
         decayEl.value = currentDecay.toFixed(3);
         totalEl.value = String(Math.round(total));
-        r1.value = String(Math.round(p1));
+
+        // Only update slider values if not actively dragging them
+        if (!skipR1Update) {
+          r1.value = String(Math.round(p1));
+        }
 
         // Update bounds for r5 slider
         updateBounds();
 
         // Set r5 value to the calculated total
-        r5.value = String(Math.round(total));
+        if (!skipR5Update) {
+          r5.value = String(Math.round(total));
+        }
+
         placeTags();
         renderTable();
 
@@ -335,7 +342,8 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         const Sfixed = clamp(+r5.value || 0, +r5.min, +r5.max);
         const d = solveDecay(p1, Sfixed);
         currentDecay = d;
-        rebuildFrom(p1, d, true); // isDragging = true
+        // Skip updating r1 during drag to avoid fighting with browser
+        rebuildFrom(p1, d, true, true, false); // isDragging=true, skipR1=true, skipR5=false
         r5.value = String(Math.round(Sfixed));
         placeTags();
       }
@@ -346,7 +354,8 @@ export const NightlyPriceSlider: React.FC<NightlyPriceSliderProps> = ({
         const S = clamp(Sval, +r5.min, +r5.max);
         const d = solveDecay(p1, S);
         currentDecay = d;
-        rebuildFrom(p1, d, true); // isDragging = true
+        // Skip updating r5 during drag to avoid fighting with browser
+        rebuildFrom(p1, d, true, false, true); // isDragging=true, skipR1=false, skipR5=true
         r1.value = String(Math.round(p1));
         placeTags();
       }
