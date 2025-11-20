@@ -15,7 +15,6 @@ export const Section3LeaseStyles: React.FC<Section3Props> = ({
   onBack
 }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showMonthlyModal, setShowMonthlyModal] = useState(false);
 
   const handleRentalTypeChange = (type: RentalType) => {
     const newData: LeaseStylesConfig = {
@@ -43,7 +42,7 @@ export const Section3LeaseStyles: React.FC<Section3Props> = ({
     } else if (type === 'Monthly') {
       delete newData.availableNights;
       delete newData.weeklyPattern;
-      setShowMonthlyModal(true);
+      // Don't set subsidyAgreement automatically, let user select
     }
 
     onChange(newData);
@@ -93,7 +92,6 @@ export const Section3LeaseStyles: React.FC<Section3Props> = ({
 
   const handleMonthlyAgreement = (agreed: boolean) => {
     onChange({ ...data, subsidyAgreement: agreed });
-    setShowMonthlyModal(false);
     setErrors({});
   };
 
@@ -225,72 +223,43 @@ export const Section3LeaseStyles: React.FC<Section3Props> = ({
         </div>
       )}
 
-      {/* Monthly Configuration - Subsidy Agreement Modal */}
-      {showMonthlyModal && (
-        <div className="modal-overlay" onClick={() => setShowMonthlyModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Monthly Lease Agreement</h3>
+      {/* Monthly Configuration - Inline Agreement */}
+      {data.rentalType === 'Monthly' && (
+        <div className="monthly-config">
+          <h3>Monthly Lease Agreement</h3>
+          <div className="agreement-text">
             <p>
               Our Split Lease 'Monthly' model helps guests meet rent obligations through a
               subsidy. For financial stability, we may need to sublease unused nights. If this
               isn't ideal, our other models might be more fitting for you, as they don't require
               this provision.
             </p>
-
-            <div className="modal-options">
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="subsidyAgreement"
-                  checked={data.subsidyAgreement === true}
-                  onChange={() => handleMonthlyAgreement(true)}
-                />
-                <span>I agree</span>
-              </label>
-
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="subsidyAgreement"
-                  checked={data.subsidyAgreement === false}
-                  onChange={() => handleMonthlyAgreement(false)}
-                />
-                <span>No, I will select different style</span>
-              </label>
-            </div>
-
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => setShowMonthlyModal(false)}
-                disabled={data.subsidyAgreement === undefined}
-              >
-                Confirm
-              </button>
-            </div>
           </div>
-        </div>
-      )}
 
-      {/* Monthly - Display Agreement Status */}
-      {data.rentalType === 'Monthly' && !showMonthlyModal && (
-        <div className="monthly-status">
-          {data.subsidyAgreement ? (
-            <div className="success-message">
-              ✓ You have agreed to the monthly subsidy terms
-            </div>
-          ) : (
-            <div className="error-message">
-              {errors.subsidyAgreement || 'Please agree to the terms to continue'}
-              <button
-                type="button"
-                className="btn-link"
-                onClick={() => setShowMonthlyModal(true)}
-              >
-                Review Agreement
-              </button>
-            </div>
+          <div className="agreement-options">
+            <label className={`radio-label ${data.subsidyAgreement === true ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="subsidyAgreement"
+                checked={data.subsidyAgreement === true}
+                onChange={() => handleMonthlyAgreement(true)}
+              />
+              <span>I agree to the monthly subsidy terms</span>
+            </label>
+
+            <label className={`radio-label ${data.subsidyAgreement === false ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="subsidyAgreement"
+                checked={data.subsidyAgreement === false}
+                onChange={() => handleMonthlyAgreement(false)}
+              />
+              <span>No, I will select a different rental style</span>
+            </label>
+          </div>
+
+          {errors.subsidyAgreement && (
+            <span className="error-message">{errors.subsidyAgreement}</span>
           )}
         </div>
       )}
