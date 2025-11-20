@@ -222,7 +222,7 @@
 
 /* Wider container for Features section */
 .features-section {
-  max-width: 1200px;
+  max-width: 1400px;
 }
 
 .section-title {
@@ -386,6 +386,12 @@ textarea {
   margin-top: 1rem;
 }
 
+/* Two-column checkbox grid for features section */
+.features-section .checkbox-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1rem;
+}
+
 .checkbox-label {
   display: flex;
   align-items: center;
@@ -437,13 +443,29 @@ textarea {
   margin-bottom: 2rem;
 }
 
-@media (max-width: 968px) {
+@media (max-width: 1200px) {
   .features-two-column {
     grid-template-columns: 1fr;
   }
 
   .features-section {
-    max-width: 800px;
+    max-width: 900px;
+  }
+
+  .features-section .checkbox-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .features-section .checkbox-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .features-section .checkbox-grid {
+    grid-template-columns: 1fr;
   }
 }
 
