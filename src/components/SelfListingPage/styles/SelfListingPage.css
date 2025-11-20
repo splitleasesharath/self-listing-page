@@ -220,6 +220,11 @@
   margin: 0 auto;
 }
 
+/* Wider container for Features section */
+.features-section {
+  max-width: 1200px;
+}
+
 .section-title {
   font-size: 2rem;
   font-weight: 700;
@@ -422,6 +427,24 @@ textarea {
 
 .btn-link:hover {
   color: #553399;
+}
+
+/* Features Section Two-Column Layout */
+.features-two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 968px) {
+  .features-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .features-section {
+    max-width: 800px;
+  }
 }
 
 /* Rental Type Cards */

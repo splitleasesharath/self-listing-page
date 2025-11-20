@@ -86,88 +86,94 @@ We look forward to hosting you!`;
       <h2 className="section-title">Features</h2>
       <p className="section-subtitle">Describe your property's amenities and features</p>
 
-      {/* Amenities Inside Unit */}
-      <div className="form-group">
-        <div className="label-with-action">
-          <label>Amenities inside Unit</label>
-          <button
-            type="button"
-            className="btn-link"
-            onClick={loadCommonAmenities}
-          >
-            load common
-          </button>
+      {/* Amenities Two-Column Layout */}
+      <div className="features-two-column">
+        {/* Left Column: Amenities Inside Unit */}
+        <div className="form-group">
+          <div className="label-with-action">
+            <label>Amenities inside Unit</label>
+            <button
+              type="button"
+              className="btn-link"
+              onClick={loadCommonAmenities}
+            >
+              load common
+            </button>
+          </div>
+          <div className="checkbox-grid">
+            {AMENITIES_INSIDE.map((amenity) => (
+              <label key={amenity} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={data.amenitiesInsideUnit.includes(amenity)}
+                  onChange={() => toggleAmenity(amenity, true)}
+                />
+                <span>{amenity}</span>
+              </label>
+            ))}
+          </div>
         </div>
-        <div className="checkbox-grid">
-          {AMENITIES_INSIDE.map((amenity) => (
-            <label key={amenity} className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={data.amenitiesInsideUnit.includes(amenity)}
-                onChange={() => toggleAmenity(amenity, true)}
-              />
-              <span>{amenity}</span>
-            </label>
-          ))}
+
+        {/* Right Column: Amenities Outside Unit */}
+        <div className="form-group">
+          <label>Amenities outside Unit (Optional)</label>
+          <div className="checkbox-grid">
+            {AMENITIES_OUTSIDE.map((amenity) => (
+              <label key={amenity} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={data.amenitiesOutsideUnit.includes(amenity)}
+                  onChange={() => toggleAmenity(amenity, false)}
+                />
+                <span>{amenity}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Description of Lodging */}
-      <div className="form-group">
-        <div className="label-with-action">
-          <label htmlFor="descriptionOfLodging">
-            Description of Lodging<span className="required">*</span>
+      {/* Descriptions Two-Column Layout */}
+      <div className="features-two-column">
+        {/* Left Column: Description of Lodging */}
+        <div className="form-group">
+          <div className="label-with-action">
+            <label htmlFor="descriptionOfLodging">
+              Description of Lodging<span className="required">*</span>
+            </label>
+            <button
+              type="button"
+              className="btn-link"
+              onClick={loadTemplate}
+            >
+              load template
+            </button>
+          </div>
+          <textarea
+            id="descriptionOfLodging"
+            rows={8}
+            placeholder="Describe your space in detail..."
+            value={data.descriptionOfLodging}
+            onChange={(e) => handleChange('descriptionOfLodging', e.target.value)}
+            className={errors.descriptionOfLodging ? 'input-error' : ''}
+          />
+          {errors.descriptionOfLodging && (
+            <span className="error-message">{errors.descriptionOfLodging}</span>
+          )}
+        </div>
+
+        {/* Right Column: Neighborhood Description */}
+        <div className="form-group">
+          <label htmlFor="neighborhoodDescription">
+            Describe Life in the Neighborhood (Optional)
           </label>
-          <button
-            type="button"
-            className="btn-link"
-            onClick={loadTemplate}
-          >
-            load template
-          </button>
+          <textarea
+            id="neighborhoodDescription"
+            rows={8}
+            placeholder="Tell guests about the neighborhood..."
+            value={data.neighborhoodDescription}
+            onChange={(e) => handleChange('neighborhoodDescription', e.target.value)}
+          />
         </div>
-        <textarea
-          id="descriptionOfLodging"
-          rows={8}
-          placeholder="Describe your space in detail..."
-          value={data.descriptionOfLodging}
-          onChange={(e) => handleChange('descriptionOfLodging', e.target.value)}
-          className={errors.descriptionOfLodging ? 'input-error' : ''}
-        />
-        {errors.descriptionOfLodging && (
-          <span className="error-message">{errors.descriptionOfLodging}</span>
-        )}
-      </div>
-
-      {/* Amenities Outside Unit */}
-      <div className="form-group">
-        <label>Amenities outside Unit (Optional)</label>
-        <div className="checkbox-grid">
-          {AMENITIES_OUTSIDE.map((amenity) => (
-            <label key={amenity} className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={data.amenitiesOutsideUnit.includes(amenity)}
-                onChange={() => toggleAmenity(amenity, false)}
-              />
-              <span>{amenity}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Neighborhood Description */}
-      <div className="form-group">
-        <label htmlFor="neighborhoodDescription">
-          Describe Life in the Neighborhood (Optional)
-        </label>
-        <textarea
-          id="neighborhoodDescription"
-          rows={6}
-          placeholder="Tell guests about the neighborhood..."
-          value={data.neighborhoodDescription}
-          onChange={(e) => handleChange('neighborhoodDescription', e.target.value)}
-        />
       </div>
 
       {/* Navigation */}
