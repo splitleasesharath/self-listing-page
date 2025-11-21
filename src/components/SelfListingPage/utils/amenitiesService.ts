@@ -20,12 +20,16 @@ export async function getCommonAmenitiesByType(type: string): Promise<string[]> 
   }
 
   try {
+    console.log('Fetching amenities for type:', type);
+
     const { data, error } = await supabase
       .from('zat_features_amenity')
-      .select('Name')
-      .eq('pre-set?', true)
-      .eq('Type - Amenity Categories', type)
+      .select('Name, "pre-set?", "Type - Amenity Categories"')
+      .eq('"pre-set?"', true)
+      .eq('"Type - Amenity Categories"', type)
       .order('Name', { ascending: true });
+
+    console.log('Supabase response:', { data, error });
 
     if (error) {
       console.error('Error fetching common amenities:', error);
@@ -38,7 +42,9 @@ export async function getCommonAmenitiesByType(type: string): Promise<string[]> 
     }
 
     // Extract just the names
-    return data.map((amenity) => amenity.Name);
+    const names = data.map((amenity) => amenity.Name);
+    console.log('Fetched amenities:', names);
+    return names;
   } catch (err) {
     console.error('Unexpected error in getCommonAmenitiesByType:', err);
     return [];
