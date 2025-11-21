@@ -1141,33 +1141,131 @@ textarea {
   }
 }
 
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  backdrop-filter: blur(2px);
+/* Block Dates Layout - Desktop: Side by Side, Mobile: Popup */
+.block-dates-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
 }
 
-/* Date Picker Modal Popup */
-.date-picker-modal-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.block-dates-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Blocked Dates List in Left Column */
+.blocked-dates-list {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: #f9f9f9;
+  border-radius: 12px;
+  border: 1px solid #e5e5e5;
+}
+
+.blocked-dates-list h5 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.blocked-dates-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.blocked-date-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.blocked-date-item .remove-date-btn {
+  background: none;
+  border: none;
+  color: #d32f2f;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.blocked-date-item .remove-date-btn:hover {
+  background: #ffebee;
+  border-radius: 4px;
+}
+
+.more-dates {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  text-align: center;
+}
+
+/* Date Picker Container - Desktop: Inline, Mobile: Popup */
+.date-picker-container {
   background: #ffffff;
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  z-index: 1001;
-  max-width: 600px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
+  border: 2px solid #e0e0e0;
+}
+
+/* Mobile Overlay - Hidden on desktop */
+.modal-overlay.mobile-only {
+  display: none;
+}
+
+/* Desktop Styles */
+@media (min-width: 1025px) {
+  .date-picker-container {
+    position: static;
+    transform: none;
+    box-shadow: none;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+  }
+}
+
+/* Mobile/Tablet Styles - Calendar becomes popup */
+@media (max-width: 1024px) {
+  .block-dates-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .modal-overlay.mobile-only {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+  }
+
+  .date-picker-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .date-picker-header {

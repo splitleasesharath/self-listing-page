@@ -41,6 +41,13 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
     handleChange('houseRules', [...new Set([...data.houseRules, ...common])]);
   };
 
+  const removeBlockedDate = (dateToRemove: Date) => {
+    const updated = data.blockedDates.filter(
+      (d) => d.toDateString() !== dateToRemove.toDateString()
+    );
+    handleChange('blockedDates', updated);
+  };
+
   const handleAddDates = () => {
     if (selectionMode === 'range') {
       if (!selectedStartDate) return;
@@ -320,20 +327,53 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
 
       {/* Block Dates */}
       <div className="form-group block-dates-section">
-        <label className="block-dates-label">Block Dates</label>
-        <p className="block-dates-description">Select dates when your property will not be available</p>
-        <button
-          type="button"
-          className="btn-secondary add-date-btn"
-          onClick={() => setShowDatePicker(!showDatePicker)}
-        >
-          {showDatePicker ? 'Close Calendar' : 'Add Date'}
-        </button>
+        <div className="block-dates-layout">
+          {/* Left side - Info and Button */}
+          <div className="block-dates-left">
+            <label className="block-dates-label">Block Dates</label>
+            <p className="block-dates-description">Select dates when your property will not be available</p>
+            <button
+              type="button"
+              className="btn-secondary add-date-btn"
+              onClick={() => setShowDatePicker(!showDatePicker)}
+            >
+              {showDatePicker ? 'Close Calendar' : 'Add Date'}
+            </button>
 
-        {showDatePicker && (
-          <>
-            <div className="modal-overlay" onClick={() => setShowDatePicker(false)} />
-            <div className="date-picker-modal-popup" ref={datePickerRef}>
+            {/* Blocked dates list */}
+            {data.blockedDates.length > 0 && (
+              <div className="blocked-dates-list">
+                <h5>Blocked Dates ({data.blockedDates.length})</h5>
+                <div className="blocked-dates-items">
+                  {data.blockedDates.slice(0, 5).map((date, idx) => (
+                    <div key={idx} className="blocked-date-item">
+                      {date.toLocaleDateString()}
+                      <button
+                        type="button"
+                        onClick={() => removeBlockedDate(date)}
+                        className="remove-date-btn"
+                        title="Remove date"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {data.blockedDates.length > 5 && (
+                    <p className="more-dates">+{data.blockedDates.length - 5} more</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right side - Calendar (desktop inline, mobile popup) */}
+          {showDatePicker && (
+            <>
+              {/* Mobile overlay - only on mobile */}
+              <div className="modal-overlay mobile-only" onClick={() => setShowDatePicker(false)} />
+
+              {/* Calendar container - popup on mobile, inline on desktop */}
+              <div className="date-picker-container" ref={datePickerRef}>
               <div className="date-picker-header">
                 <h4>Block Dates</h4>
                 <button
@@ -469,32 +509,7 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
             </div>
           </>
         )}
-
-        {data.blockedDates.length > 0 && (
-          <div className="blocked-dates-list">
-            <h4 className="blocked-dates-title">Blocked Dates ({data.blockedDates.length})</h4>
-            <div className="blocked-dates-chips">
-              {data.blockedDates
-                .sort((a, b) => a.getTime() - b.getTime())
-                .map((date, index) => (
-                  <div key={index} className="blocked-date-chip">
-                    <span>{date.toLocaleDateString()}</span>
-                    <button
-                      type="button"
-                      className="remove-date-btn"
-                      onClick={() => {
-                        const updated = data.blockedDates.filter((_, i) => i !== index);
-                        handleChange('blockedDates', updated);
-                      }}
-                      title="Remove date"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Navigation */}
