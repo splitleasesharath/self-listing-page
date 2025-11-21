@@ -37,6 +37,16 @@ export const Section1SpaceSnapshot: React.FC<Section1Props> = ({
     dataRef.current = data;
   }, [data]);
 
+  // Check if address is already validated when component mounts or data changes
+  useEffect(() => {
+    // If the address has been validated before (has fullAddress and validated flag is true)
+    if (data.address.validated && data.address.fullAddress) {
+      setIsAddressValid(true);
+      setAddressError('');
+      console.log('Address already validated on mount:', data.address.fullAddress);
+    }
+  }, [data.address.validated, data.address.fullAddress]);
+
   // Initialize Google Maps Autocomplete
   useEffect(() => {
     let retryCount = 0;
