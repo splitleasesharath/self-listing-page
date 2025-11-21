@@ -149,17 +149,17 @@ export const Section6Photos: React.FC<Section6Props> = ({ data, onChange, onNext
           onChange={handleFileUpload}
           style={{ display: 'none' }}
         />
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'stretch' }}>
           <button
             type="button"
             className="btn-upload"
             onClick={() => fileInputRef.current?.click()}
           >
-            📷 Upload Photos
+            Upload Photos
           </button>
 
           <button type="button" className="btn-secondary" onClick={openMobileUpload}>
-            📱 Do you want to continue on mobile?
+            Do you want to continue on mobile?
           </button>
         </div>
 

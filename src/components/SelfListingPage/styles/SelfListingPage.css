@@ -1144,7 +1144,7 @@ textarea {
 /* Block Dates Layout - Desktop: Side by Side, Mobile: Popup */
 .block-dates-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 400px 1fr;
   gap: 3rem;
   align-items: start;
 }
@@ -1505,5 +1505,48 @@ textarea {
 
   .optional-section-title {
     font-size: 1.25rem;
+  }
+}
+
+/* Review Section - Fixed Bottom Navigation */
+.review-fixed-navigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  gap: 1rem;
+}
+
+.review-fixed-navigation .btn-back,
+.review-fixed-navigation .btn-submit {
+  padding: 1rem 3rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  min-width: 150px;
+}
+
+/* Add padding to review section to account for fixed bottom nav */
+.review-section {
+  padding-bottom: 100px;
+}
+
+@media (max-width: 768px) {
+  .review-fixed-navigation {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .review-fixed-navigation .btn-back,
+  .review-fixed-navigation .btn-submit {
+    width: 100%;
+    min-width: auto;
   }
 }

@@ -38,21 +38,9 @@ export const Section7Review: React.FC<Section7Props> = ({
     handleChange('safetyFeatures', updated);
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!reviewData.agreedToTerms) {
-      newErrors.agreedToTerms = 'You must agree to the terms and conditions to submit';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = () => {
-    if (validateForm()) {
-      onSubmit();
-    }
+    // No validation needed - button is always clickable
+    onSubmit();
   };
 
   return (
@@ -267,29 +255,6 @@ export const Section7Review: React.FC<Section7Props> = ({
         />
       </div>
 
-      {/* Terms and Conditions */}
-      <div className="form-group">
-        <label className="checkbox-label terms-checkbox">
-          <input
-            type="checkbox"
-            checked={reviewData.agreedToTerms}
-            onChange={(e) => handleChange('agreedToTerms', e.target.checked)}
-          />
-          <span>
-            I agree to the{' '}
-            <a href="/terms" target="_blank" rel="noopener noreferrer">
-              Terms and Conditions
-            </a>{' '}
-            and{' '}
-            <a href="/privacy" target="_blank" rel="noopener noreferrer">
-              Privacy Policy
-            </a>
-            <span className="required">*</span>
-          </span>
-        </label>
-        {errors.agreedToTerms && <span className="error-message">{errors.agreedToTerms}</span>}
-      </div>
-
       {/* Important Information */}
       <div className="info-box">
         <h4>Before you submit:</h4>
@@ -298,11 +263,12 @@ export const Section7Review: React.FC<Section7Props> = ({
           <li>You will receive an email notification once your listing is approved</li>
           <li>You can edit your listing anytime after submission</li>
           <li>Your contact information will remain private and secure</li>
+          <li>You will agree to Terms and Conditions during sign-up</li>
         </ul>
       </div>
 
-      {/* Navigation */}
-      <div className="section-navigation">
+      {/* Fixed Bottom Navigation */}
+      <div className="review-fixed-navigation">
         <button type="button" className="btn-back" onClick={onBack} disabled={isSubmitting}>
           Back
         </button>
@@ -310,7 +276,7 @@ export const Section7Review: React.FC<Section7Props> = ({
           type="button"
           className="btn-submit"
           onClick={handleSubmit}
-          disabled={isSubmitting || !reviewData.agreedToTerms}
+          disabled={isSubmitting}
         >
           {isSubmitting ? 'Submitting...' : 'Submit Listing'}
         </button>
