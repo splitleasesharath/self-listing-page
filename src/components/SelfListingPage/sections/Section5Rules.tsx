@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { Rules, CancellationPolicy, GenderPreference, RentalType } from '../types/listing.types';
 import { HOUSE_RULES } from '../types/listing.types';
 
@@ -12,6 +12,10 @@ interface Section5Props {
 
 export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onChange, onNext, onBack }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
+  const datePickerRef = useRef<HTMLDivElement>(null);
 
   const handleChange = (field: keyof Rules, value: any) => {
     onChange({ ...data, [field]: value });
@@ -32,6 +36,71 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
   const loadCommonRules = () => {
     const common = ['No Parties', 'No Smoking Inside', 'Quiet Hours', 'Wash Your Dishes', 'Lock Doors'];
     handleChange('houseRules', [...new Set([...data.houseRules, ...common])]);
+  };
+
+  const handleAddDateRange = () => {
+    if (!selectedStartDate) return;
+
+    const endDate = selectedEndDate || selectedStartDate;
+    const dates: Date[] = [];
+    const currentDate = new Date(selectedStartDate);
+
+    while (currentDate <= endDate) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    handleChange('blockedDates', [...data.blockedDates, ...dates]);
+    setShowDatePicker(false);
+    setSelectedStartDate(null);
+    setSelectedEndDate(null);
+  };
+
+  const handleDateClick = (date: Date) => {
+    if (!selectedStartDate) {
+      setSelectedStartDate(date);
+    } else if (!selectedEndDate) {
+      if (date >= selectedStartDate) {
+        setSelectedEndDate(date);
+      } else {
+        setSelectedStartDate(date);
+        setSelectedEndDate(null);
+      }
+    } else {
+      setSelectedStartDate(date);
+      setSelectedEndDate(null);
+    }
+  };
+
+  const generateCalendarDays = () => {
+    const today = new Date();
+    const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const days: Date[] = [];
+
+    // Get days for current and next 2 months
+    for (let m = 0; m < 3; m++) {
+      const month = new Date(currentMonth);
+      month.setMonth(month.getMonth() + m);
+      const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        days.push(new Date(month.getFullYear(), month.getMonth(), d));
+      }
+    }
+
+    return days;
+  };
+
+  const isDateBlocked = (date: Date) => {
+    return data.blockedDates.some(
+      (blocked) => blocked.toDateString() === date.toDateString()
+    );
+  };
+
+  const isDateInRange = (date: Date) => {
+    if (!selectedStartDate) return false;
+    if (!selectedEndDate) return date.toDateString() === selectedStartDate.toDateString();
+    return date >= selectedStartDate && date <= selectedEndDate;
   };
 
   const validateForm = (): boolean => {
@@ -204,26 +273,107 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
       </div>
 
       {/* Block Dates */}
-      <div className="form-group">
-        <label>Block Dates</label>
-        <p className="field-info">Select dates when your property will not be available</p>
-        <button type="button" className="btn-secondary">Add Date</button>
+      <div className="form-group block-dates-section">
+        <label className="block-dates-label">Block Dates</label>
+        <p className="block-dates-description">Select dates when your property will not be available</p>
+        <button
+          type="button"
+          className="btn-secondary add-date-btn"
+          onClick={() => setShowDatePicker(!showDatePicker)}
+        >
+          {showDatePicker ? 'Close Calendar' : 'Add Date'}
+        </button>
+
+        {showDatePicker && (
+          <div className="date-picker-modal" ref={datePickerRef}>
+            <div className="date-picker-header">
+              <h4>Select Date Range</h4>
+              <p className="date-picker-instructions">
+                Click a date to start, then click another date to create a range
+              </p>
+              {selectedStartDate && (
+                <div className="selected-range-display">
+                  <strong>Selected:</strong>{' '}
+                  {selectedStartDate.toLocaleDateString()}
+                  {selectedEndDate && ` - ${selectedEndDate.toLocaleDateString()}`}
+                </div>
+              )}
+            </div>
+            <div className="calendar-grid">
+              {generateCalendarDays().map((date, index) => {
+                const isBlocked = isDateBlocked(date);
+                const isInRange = isDateInRange(date);
+                const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
+                const isFirstOfMonth = date.getDate() === 1;
+
+                return (
+                  <React.Fragment key={index}>
+                    {isFirstOfMonth && (
+                      <div className="calendar-month-header">
+                        {date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className={`calendar-day ${isBlocked ? 'blocked' : ''} ${
+                        isInRange ? 'in-range' : ''
+                      } ${isPast ? 'past' : ''}`}
+                      onClick={() => !isPast && !isBlocked && handleDateClick(date)}
+                      disabled={isPast || isBlocked}
+                    >
+                      {date.getDate()}
+                    </button>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+            <div className="date-picker-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  setShowDatePicker(false);
+                  setSelectedStartDate(null);
+                  setSelectedEndDate(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleAddDateRange}
+                disabled={!selectedStartDate}
+              >
+                Add Blocked Dates
+              </button>
+            </div>
+          </div>
+        )}
+
         {data.blockedDates.length > 0 && (
           <div className="blocked-dates-list">
-            {data.blockedDates.map((date, index) => (
-              <div key={index} className="blocked-date-item">
-                <span>{date.toLocaleDateString()}</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const updated = data.blockedDates.filter((_, i) => i !== index);
-                    handleChange('blockedDates', updated);
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+            <h4 className="blocked-dates-title">Blocked Dates ({data.blockedDates.length})</h4>
+            <div className="blocked-dates-chips">
+              {data.blockedDates
+                .sort((a, b) => a.getTime() - b.getTime())
+                .map((date, index) => (
+                  <div key={index} className="blocked-date-chip">
+                    <span>{date.toLocaleDateString()}</span>
+                    <button
+                      type="button"
+                      className="remove-date-btn"
+                      onClick={() => {
+                        const updated = data.blockedDates.filter((_, i) => i !== index);
+                        handleChange('blockedDates', updated);
+                      }}
+                      title="Remove date"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+            </div>
           </div>
         )}
       </div>

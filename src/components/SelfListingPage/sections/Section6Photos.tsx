@@ -11,6 +11,8 @@ interface Section6Props {
 export const Section6Photos: React.FC<Section6Props> = ({ data, onChange, onNext, onBack }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -68,6 +70,46 @@ export const Section6Photos: React.FC<Section6Props> = ({ data, onChange, onNext
     });
 
     onChange({ ...data, photos: updated });
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const updated = [...data.photos];
+    const [draggedItem] = updated.splice(draggedIndex, 1);
+    updated.splice(dropIndex, 0, draggedItem);
+
+    // Update display orders
+    updated.forEach((photo, index) => {
+      photo.displayOrder = index;
+    });
+
+    onChange({ ...data, photos: updated });
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const validateForm = (): boolean => {
@@ -132,27 +174,23 @@ export const Section6Photos: React.FC<Section6Props> = ({ data, onChange, onNext
       {data.photos.length > 0 && (
         <div className="photo-gallery">
           <h3>Uploaded Photos ({data.photos.length})</h3>
+          <p className="drag-drop-hint">💡 Drag and drop photos to reorder. First photo is the cover photo.</p>
           <div className="photo-grid">
             {data.photos.map((photo, index) => (
-              <div key={photo.id} className="photo-item">
+              <div
+                key={photo.id}
+                className={`photo-item ${draggedIndex === index ? 'dragging' : ''} ${
+                  dragOverIndex === index ? 'drag-over' : ''
+                }`}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+              >
                 <img src={photo.url} alt={`Property photo ${index + 1}`} />
                 <div className="photo-controls">
-                  <button
-                    type="button"
-                    onClick={() => movePhoto(photo.id, 'up')}
-                    disabled={index === 0}
-                    title="Move up"
-                  >
-                    ⬆️
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => movePhoto(photo.id, 'down')}
-                    disabled={index === data.photos.length - 1}
-                    title="Move down"
-                  >
-                    ⬇️
-                  </button>
                   <button
                     type="button"
                     onClick={() => removePhoto(photo.id)}
