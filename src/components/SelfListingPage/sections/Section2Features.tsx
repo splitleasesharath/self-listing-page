@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Features } from '../types/listing.types';
 import { AMENITIES_INSIDE, AMENITIES_OUTSIDE } from '../types/listing.types';
 import { getNeighborhoodByZipCode } from '../utils/neighborhoodService';
+import { getCommonInUnitAmenities, getCommonBuildingAmenities } from '../utils/amenitiesService';
 
 interface Section2Props {
   data: Features;
@@ -20,6 +21,8 @@ export const Section2Features: React.FC<Section2Props> = ({
 }) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoadingNeighborhood, setIsLoadingNeighborhood] = useState(false);
+  const [isLoadingInUnitAmenities, setIsLoadingInUnitAmenities] = useState(false);
+  const [isLoadingBuildingAmenities, setIsLoadingBuildingAmenities] = useState(false);
 
   const handleChange = (field: keyof Features, value: any) => {
     onChange({ ...data, [field]: value });
@@ -42,18 +45,38 @@ export const Section2Features: React.FC<Section2Props> = ({
     handleChange(field, updated);
   };
 
-  const loadCommonAmenities = () => {
-    const common = [
-      'WiFi',
-      'Air Conditioned',
-      'Heating',
-      'Washer',
-      'Dryer',
-      'TV',
-      'Bedding',
-      'Essentials'
-    ];
-    handleChange('amenitiesInsideUnit', [...new Set([...data.amenitiesInsideUnit, ...common])]);
+  const loadCommonInUnitAmenities = async () => {
+    setIsLoadingInUnitAmenities(true);
+    try {
+      const commonAmenities = await getCommonInUnitAmenities();
+      if (commonAmenities.length > 0) {
+        handleChange('amenitiesInsideUnit', [...new Set([...data.amenitiesInsideUnit, ...commonAmenities])]);
+      } else {
+        alert('No common in-unit amenities found in the database.');
+      }
+    } catch (error) {
+      console.error('Error loading common in-unit amenities:', error);
+      alert('Error loading common amenities. Please try again.');
+    } finally {
+      setIsLoadingInUnitAmenities(false);
+    }
+  };
+
+  const loadCommonBuildingAmenities = async () => {
+    setIsLoadingBuildingAmenities(true);
+    try {
+      const commonAmenities = await getCommonBuildingAmenities();
+      if (commonAmenities.length > 0) {
+        handleChange('amenitiesOutsideUnit', [...new Set([...data.amenitiesOutsideUnit, ...commonAmenities])]);
+      } else {
+        alert('No common building amenities found in the database.');
+      }
+    } catch (error) {
+      console.error('Error loading common building amenities:', error);
+      alert('Error loading common amenities. Please try again.');
+    } finally {
+      setIsLoadingBuildingAmenities(false);
+    }
   };
 
   const loadTemplate = () => {
@@ -122,9 +145,10 @@ We look forward to hosting you!`;
             <button
               type="button"
               className="btn-link"
-              onClick={loadCommonAmenities}
+              onClick={loadCommonInUnitAmenities}
+              disabled={isLoadingInUnitAmenities}
             >
-              load common
+              {isLoadingInUnitAmenities ? 'loading...' : 'load common'}
             </button>
           </div>
           <div className="checkbox-grid">
@@ -143,7 +167,17 @@ We look forward to hosting you!`;
 
         {/* Right Column: Amenities Outside Unit */}
         <div className="form-group">
-          <label>Amenities outside Unit (Optional)</label>
+          <div className="label-with-action">
+            <label>Amenities outside Unit (Optional)</label>
+            <button
+              type="button"
+              className="btn-link"
+              onClick={loadCommonBuildingAmenities}
+              disabled={isLoadingBuildingAmenities}
+            >
+              {isLoadingBuildingAmenities ? 'loading...' : 'load common'}
+            </button>
+          </div>
           <div className="checkbox-grid">
             {AMENITIES_OUTSIDE.map((amenity) => (
               <label key={amenity} className="checkbox-label">
