@@ -1296,3 +1296,17 @@ textarea {
   background: transparent;
   transform: none;
 }
+
+/* Photos Section - Align buttons */
+.upload-area .btn-upload,
+.upload-area .btn-secondary {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  height: auto;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 600;
+}
