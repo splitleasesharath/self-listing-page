@@ -15,6 +15,9 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectionMode, setSelectionMode] = useState<'individual' | 'range'>('range');
+  const [tempSelectedDates, setTempSelectedDates] = useState<Date[]>([]);
   const datePickerRef = useRef<HTMLDivElement>(null);
 
   const handleChange = (field: keyof Rules, value: any) => {
@@ -38,57 +41,96 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
     handleChange('houseRules', [...new Set([...data.houseRules, ...common])]);
   };
 
-  const handleAddDateRange = () => {
-    if (!selectedStartDate) return;
+  const handleAddDates = () => {
+    if (selectionMode === 'range') {
+      if (!selectedStartDate) return;
 
-    const endDate = selectedEndDate || selectedStartDate;
-    const dates: Date[] = [];
-    const currentDate = new Date(selectedStartDate);
+      const endDate = selectedEndDate || selectedStartDate;
+      const dates: Date[] = [];
+      const currentDate = new Date(selectedStartDate);
 
-    while (currentDate <= endDate) {
-      dates.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
+      while (currentDate <= endDate) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      handleChange('blockedDates', [...data.blockedDates, ...dates]);
+    } else {
+      // Individual mode
+      handleChange('blockedDates', [...data.blockedDates, ...tempSelectedDates]);
     }
 
-    handleChange('blockedDates', [...data.blockedDates, ...dates]);
+    // Reset state
     setShowDatePicker(false);
     setSelectedStartDate(null);
     setSelectedEndDate(null);
+    setTempSelectedDates([]);
   };
 
   const handleDateClick = (date: Date) => {
-    if (!selectedStartDate) {
-      setSelectedStartDate(date);
-    } else if (!selectedEndDate) {
-      if (date >= selectedStartDate) {
-        setSelectedEndDate(date);
+    if (selectionMode === 'range') {
+      if (!selectedStartDate) {
+        setSelectedStartDate(date);
+      } else if (!selectedEndDate) {
+        if (date >= selectedStartDate) {
+          setSelectedEndDate(date);
+        } else {
+          setSelectedStartDate(date);
+          setSelectedEndDate(null);
+        }
       } else {
         setSelectedStartDate(date);
         setSelectedEndDate(null);
       }
     } else {
-      setSelectedStartDate(date);
-      setSelectedEndDate(null);
+      // Individual mode - toggle date selection
+      const dateStr = date.toDateString();
+      const isSelected = tempSelectedDates.some((d) => d.toDateString() === dateStr);
+
+      if (isSelected) {
+        setTempSelectedDates(tempSelectedDates.filter((d) => d.toDateString() !== dateStr));
+      } else {
+        setTempSelectedDates([...tempSelectedDates, date]);
+      }
     }
   };
 
   const generateCalendarDays = () => {
-    const today = new Date();
-    const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const days: Date[] = [];
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
 
-    // Get days for current and next 2 months
-    for (let m = 0; m < 3; m++) {
-      const month = new Date(currentMonth);
-      month.setMonth(month.getMonth() + m);
-      const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+    const days: (Date | null)[] = [];
 
-      for (let d = 1; d <= daysInMonth; d++) {
-        days.push(new Date(month.getFullYear(), month.getMonth(), d));
-      }
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+
+    // Add days of the month
+    for (let d = 1; d <= daysInMonth; d++) {
+      days.push(new Date(year, month, d));
     }
 
     return days;
+  };
+
+  const goToPreviousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const handleModeChange = (mode: 'individual' | 'range') => {
+    setSelectionMode(mode);
+    setSelectedStartDate(null);
+    setSelectedEndDate(null);
+    setTempSelectedDates([]);
   };
 
   const isDateBlocked = (date: Date) => {
@@ -98,6 +140,10 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
   };
 
   const isDateInRange = (date: Date) => {
+    if (selectionMode === 'individual') {
+      return tempSelectedDates.some((d) => d.toDateString() === date.toDateString());
+    }
+
     if (!selectedStartDate) return false;
     if (!selectedEndDate) return date.toDateString() === selectedStartDate.toDateString();
     return date >= selectedStartDate && date <= selectedEndDate;
@@ -285,70 +331,143 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
         </button>
 
         {showDatePicker && (
-          <div className="date-picker-modal" ref={datePickerRef}>
-            <div className="date-picker-header">
-              <h4>Select Date Range</h4>
+          <>
+            <div className="modal-overlay" onClick={() => setShowDatePicker(false)} />
+            <div className="date-picker-modal-popup" ref={datePickerRef}>
+              <div className="date-picker-header">
+                <h4>Block Dates</h4>
+                <button
+                  type="button"
+                  className="modal-close-btn"
+                  onClick={() => setShowDatePicker(false)}
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Selection Mode Toggle */}
+              <div className="selection-mode-toggle">
+                <label className="mode-option">
+                  <input
+                    type="radio"
+                    name="selectionMode"
+                    checked={selectionMode === 'range'}
+                    onChange={() => handleModeChange('range')}
+                  />
+                  <span>Range Selection</span>
+                </label>
+                <label className="mode-option">
+                  <input
+                    type="radio"
+                    name="selectionMode"
+                    checked={selectionMode === 'individual'}
+                    onChange={() => handleModeChange('individual')}
+                  />
+                  <span>Individual Dates</span>
+                </label>
+              </div>
+
               <p className="date-picker-instructions">
-                Click a date to start, then click another date to create a range
+                {selectionMode === 'range'
+                  ? 'Click a start date, then click an end date to select a range'
+                  : 'Click to select individual dates'}
               </p>
-              {selectedStartDate && (
+
+              {/* Month Navigation */}
+              <div className="month-navigation">
+                <button type="button" onClick={goToPreviousMonth} className="nav-btn">
+                  ‹
+                </button>
+                <span className="current-month">
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </span>
+                <button type="button" onClick={goToNextMonth} className="nav-btn">
+                  ›
+                </button>
+              </div>
+
+              {/* Selected Display */}
+              {((selectionMode === 'range' && selectedStartDate) ||
+                (selectionMode === 'individual' && tempSelectedDates.length > 0)) && (
                 <div className="selected-range-display">
                   <strong>Selected:</strong>{' '}
-                  {selectedStartDate.toLocaleDateString()}
-                  {selectedEndDate && ` - ${selectedEndDate.toLocaleDateString()}`}
+                  {selectionMode === 'range' ? (
+                    <>
+                      {selectedStartDate?.toLocaleDateString()}
+                      {selectedEndDate && ` - ${selectedEndDate.toLocaleDateString()}`}
+                    </>
+                  ) : (
+                    `${tempSelectedDates.length} date${tempSelectedDates.length !== 1 ? 's' : ''}`
+                  )}
                 </div>
               )}
-            </div>
-            <div className="calendar-grid">
-              {generateCalendarDays().map((date, index) => {
-                const isBlocked = isDateBlocked(date);
-                const isInRange = isDateInRange(date);
-                const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
-                const isFirstOfMonth = date.getDate() === 1;
 
-                return (
-                  <React.Fragment key={index}>
-                    {isFirstOfMonth && (
-                      <div className="calendar-month-header">
-                        {date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className={`calendar-day ${isBlocked ? 'blocked' : ''} ${
-                        isInRange ? 'in-range' : ''
-                      } ${isPast ? 'past' : ''}`}
-                      onClick={() => !isPast && !isBlocked && handleDateClick(date)}
-                      disabled={isPast || isBlocked}
-                    >
-                      {date.getDate()}
-                    </button>
-                  </React.Fragment>
-                );
-              })}
+              {/* Calendar Grid with Day Headers */}
+              <div className="calendar-container">
+                <div className="calendar-day-headers">
+                  <div>Sun</div>
+                  <div>Mon</div>
+                  <div>Tue</div>
+                  <div>Wed</div>
+                  <div>Thu</div>
+                  <div>Fri</div>
+                  <div>Sat</div>
+                </div>
+                <div className="calendar-grid">
+                  {generateCalendarDays().map((date, index) => {
+                    if (!date) {
+                      return <div key={index} className="calendar-day empty" />;
+                    }
+
+                    const isBlocked = isDateBlocked(date);
+                    const isInRange = isDateInRange(date);
+                    const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
+
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        className={`calendar-day ${isBlocked ? 'blocked' : ''} ${
+                          isInRange ? 'in-range' : ''
+                        } ${isPast ? 'past' : ''}`}
+                        onClick={() => !isPast && !isBlocked && handleDateClick(date)}
+                        disabled={isPast || isBlocked}
+                      >
+                        {date.getDate()}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="date-picker-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    setShowDatePicker(false);
+                    setSelectedStartDate(null);
+                    setSelectedEndDate(null);
+                    setTempSelectedDates([]);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleAddDates}
+                  disabled={
+                    (selectionMode === 'range' && !selectedStartDate) ||
+                    (selectionMode === 'individual' && tempSelectedDates.length === 0)
+                  }
+                >
+                  Add Blocked Dates
+                </button>
+              </div>
             </div>
-            <div className="date-picker-actions">
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  setShowDatePicker(false);
-                  setSelectedStartDate(null);
-                  setSelectedEndDate(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handleAddDateRange}
-                disabled={!selectedStartDate}
-              >
-                Add Blocked Dates
-              </button>
-            </div>
-          </div>
+          </>
         )}
 
         {data.blockedDates.length > 0 && (
