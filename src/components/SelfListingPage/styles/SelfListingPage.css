@@ -214,15 +214,10 @@
   min-height: 600px;
 }
 
-/* Section Container */
+/* Section Container - Consistent width for all sections */
 .section-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-/* Wider container for Features section */
-.features-section {
   max-width: 1400px;
+  margin: 0 auto;
 }
 
 .section-title {
@@ -448,7 +443,7 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .features-section {
+  .section-container {
     max-width: 900px;
   }
 
