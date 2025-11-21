@@ -1400,13 +1400,22 @@ textarea {
 .upload-area .btn-secondary {
   padding: 1rem 2rem;
   font-size: 1rem;
-  height: auto;
+  height: 48px;
   min-height: 48px;
+  max-height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
   font-weight: 600;
+  line-height: 1;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+/* Ensure the button container aligns items properly */
+.upload-area > div[style*="display: flex"] {
+  align-items: center;
 }
 
 /* Review Section - Optional Details */

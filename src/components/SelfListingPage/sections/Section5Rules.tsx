@@ -212,7 +212,14 @@ export const Section5Rules: React.FC<Section5Props> = ({ data, rentalType, onCha
           <option value="Additional Host Restrictions">Additional Host Restrictions</option>
         </select>
         {errors.cancellationPolicy && <span className="error-message">{errors.cancellationPolicy}</span>}
-        <button type="button" className="btn-link">Review Standard Policy</button>
+        <a
+          href="https://www.split.lease/policies#cancellation-and-refund-policy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-link"
+        >
+          Review Standard Policy
+        </a>
       </div>
 
       {/* Guest Preferences */}

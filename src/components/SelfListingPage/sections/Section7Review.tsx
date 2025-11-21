@@ -60,6 +60,96 @@ export const Section7Review: React.FC<Section7Props> = ({
       <h2 className="section-title">Review & Submit</h2>
       <p className="section-subtitle">Review your listing details before submitting</p>
 
+      {/* Additional Optional Information Section - Moved to Top */}
+      <div className="optional-details-section">
+        <h3 className="optional-section-title">Additional Details (Optional)</h3>
+        <p className="optional-section-subtitle">Provide extra information to make your listing stand out</p>
+
+        {/* Two-Column Layout for Optional Fields */}
+        <div className="optional-fields-grid">
+          {/* Left Column */}
+          <div className="optional-field-column">
+            {/* Safety Features */}
+            <div className="form-group">
+              <label>Safety Features</label>
+              <p className="field-hint">Select safety features available at your property</p>
+              <div className="checkbox-grid">
+                {SAFETY_FEATURES.map((feature) => (
+                  <label key={feature} className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={(reviewData.safetyFeatures || []).includes(feature)}
+                      onChange={() => toggleSafetyFeature(feature)}
+                    />
+                    <span>{feature}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Square Footage */}
+            <div className="form-group">
+              <label htmlFor="squareFootage">
+                {formData.spaceSnapshot.typeOfSpace === 'Entire Place'
+                  ? 'Square Footage (Entire Place)'
+                  : 'Square Footage (Room)'}
+              </label>
+              <p className="field-hint">Approximate size in square feet</p>
+              <input
+                id="squareFootage"
+                type="number"
+                min="0"
+                placeholder="e.g., 500"
+                value={reviewData.squareFootage || ''}
+                onChange={(e) =>
+                  handleChange('squareFootage', e.target.value ? Number(e.target.value) : undefined)
+                }
+              />
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="optional-field-column">
+            {/* First Day Available */}
+            <div className="form-group">
+              <label htmlFor="firstDayAvailable">First Day Available</label>
+              <p className="field-hint">When can guests start booking?</p>
+              <input
+                id="firstDayAvailable"
+                type="date"
+                value={reviewData.firstDayAvailable || ''}
+                onChange={(e) => handleChange('firstDayAvailable', e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+
+            {/* Previous Reviews Link */}
+            <div className="form-group">
+              <label htmlFor="previousReviewsLink">Import Previous Reviews</label>
+              <p className="field-hint">Link to your reviews from Airbnb, VRBO, or other platforms</p>
+              <input
+                id="previousReviewsLink"
+                type="url"
+                placeholder="https://www.airbnb.com/users/show/..."
+                value={reviewData.previousReviewsLink || ''}
+                onChange={(e) => handleChange('previousReviewsLink', e.target.value)}
+              />
+              {reviewData.previousReviewsLink && (
+                <a
+                  href={reviewData.previousReviewsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-link"
+                  style={{ marginTop: '0.5rem', display: 'inline-block' }}
+                >
+                  View Reviews →
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Summary Cards */}
       <div className="review-summary">
         {/* Space Snapshot Summary */}
@@ -162,96 +252,6 @@ export const Section7Review: React.FC<Section7Props> = ({
             )}
           </div>
           <button type="button" className="btn-link">Edit</button>
-        </div>
-      </div>
-
-      {/* Additional Optional Information Section */}
-      <div className="optional-details-section">
-        <h3 className="optional-section-title">Additional Details (Optional)</h3>
-        <p className="optional-section-subtitle">Provide extra information to make your listing stand out</p>
-
-        {/* Two-Column Layout for Optional Fields */}
-        <div className="optional-fields-grid">
-          {/* Left Column */}
-          <div className="optional-field-column">
-            {/* Safety Features */}
-            <div className="form-group">
-              <label>Safety Features</label>
-              <p className="field-hint">Select safety features available at your property</p>
-              <div className="checkbox-grid">
-                {SAFETY_FEATURES.map((feature) => (
-                  <label key={feature} className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={(reviewData.safetyFeatures || []).includes(feature)}
-                      onChange={() => toggleSafetyFeature(feature)}
-                    />
-                    <span>{feature}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Square Footage */}
-            <div className="form-group">
-              <label htmlFor="squareFootage">
-                {formData.spaceSnapshot.typeOfSpace === 'Entire Place'
-                  ? 'Square Footage (Entire Place)'
-                  : 'Square Footage (Room)'}
-              </label>
-              <p className="field-hint">Approximate size in square feet</p>
-              <input
-                id="squareFootage"
-                type="number"
-                min="0"
-                placeholder="e.g., 500"
-                value={reviewData.squareFootage || ''}
-                onChange={(e) =>
-                  handleChange('squareFootage', e.target.value ? Number(e.target.value) : undefined)
-                }
-              />
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div className="optional-field-column">
-            {/* First Day Available */}
-            <div className="form-group">
-              <label htmlFor="firstDayAvailable">First Day Available</label>
-              <p className="field-hint">When can guests start booking?</p>
-              <input
-                id="firstDayAvailable"
-                type="date"
-                value={reviewData.firstDayAvailable || ''}
-                onChange={(e) => handleChange('firstDayAvailable', e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-
-            {/* Previous Reviews Link */}
-            <div className="form-group">
-              <label htmlFor="previousReviewsLink">Import Previous Reviews</label>
-              <p className="field-hint">Link to your reviews from Airbnb, VRBO, or other platforms</p>
-              <input
-                id="previousReviewsLink"
-                type="url"
-                placeholder="https://www.airbnb.com/users/show/..."
-                value={reviewData.previousReviewsLink || ''}
-                onChange={(e) => handleChange('previousReviewsLink', e.target.value)}
-              />
-              {reviewData.previousReviewsLink && (
-                <a
-                  href={reviewData.previousReviewsLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-link"
-                  style={{ marginTop: '0.5rem', display: 'inline-block' }}
-                >
-                  View Reviews →
-                </a>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
