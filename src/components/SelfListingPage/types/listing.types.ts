@@ -146,10 +146,29 @@ export interface Photos {
   minRequired: number;
 }
 
+// Safety Feature Options
+export const SAFETY_FEATURES: string[] = [
+  'Smoke Alarm',
+  'Carbon Monoxide Alarm',
+  'Fire Extinguisher',
+  'First Aid Kit',
+  'Security Cameras',
+  'Deadbolt Lock',
+  'Emergency Exit',
+  'Well-lit Entrance',
+  'Window Locks',
+  'Motion Sensor Lights'
+];
+
 // Review Data (Section 7)
 export interface ReviewData {
   optionalNotes?: string;
   agreedToTerms: boolean;
+  // Optional additional fields
+  safetyFeatures?: string[];
+  squareFootage?: number;
+  firstDayAvailable?: string;
+  previousReviewsLink?: string;
 }
 
 // Complete Listing Data
@@ -340,7 +359,11 @@ export const DEFAULT_LISTING_DATA: ListingFormData = {
     minRequired: 3
   },
   review: {
-    agreedToTerms: false
+    agreedToTerms: false,
+    safetyFeatures: [],
+    squareFootage: undefined,
+    firstDayAvailable: '',
+    previousReviewsLink: ''
   },
   currentSection: 1,
   completedSections: [],

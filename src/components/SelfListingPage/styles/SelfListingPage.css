@@ -1310,3 +1310,93 @@ textarea {
   border-radius: 8px;
   font-weight: 600;
 }
+
+/* Review Section - Optional Details */
+.optional-details-section {
+  background: #f9f9f9;
+  padding: 2rem;
+  border-radius: 12px;
+  margin: 2.5rem 0;
+  border: 1px solid #e5e5e5;
+}
+
+.optional-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.optional-section-subtitle {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 0 0 2rem 0;
+}
+
+.optional-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+
+.optional-field-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.field-hint {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0.25rem 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+/* Safety Features Checkbox Grid within Optional Section */
+.optional-details-section .checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+/* Input field styling within optional section */
+.optional-field-column input[type='number'],
+.optional-field-column input[type='date'],
+.optional-field-column input[type='url'] {
+  padding: 0.875rem;
+  font-size: 1rem;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  transition: border-color 0.2s;
+  background: #ffffff;
+}
+
+.optional-field-column input[type='number']:focus,
+.optional-field-column input[type='date']:focus,
+.optional-field-column input[type='url']:focus {
+  outline: none;
+  border-color: #6b46c1;
+  box-shadow: 0 0 0 3px rgba(107, 70, 193, 0.1);
+}
+
+/* Responsive for Optional Details */
+@media (max-width: 1024px) {
+  .optional-fields-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .optional-details-section .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .optional-details-section {
+    padding: 1.5rem;
+  }
+
+  .optional-section-title {
+    font-size: 1.25rem;
+  }
+}
